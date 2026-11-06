@@ -115,4 +115,18 @@ Après résolution des conflits, et avant de commiter la fusion :
 
 ## Tests amont incompatibles par construction
 
-Voir la section en fin de fichier, mise à jour à chaque fusion.
+Dans cet environnement, la suite complète `packages/opencode` (`bun test`) compte 1 888 échecs sur la branche `upstream` et 1 854 sur `albert_code`. Les échecs amont viennent de l'environnement (tests d'intégration lents ou dépendants de l'hôte) : ils ne sont pas dus au fork.
+
+**42 tests échouent seulement sur `albert_code`.** Tous lancent le vrai point d'entrée de la CLI en sous-processus, donc en mode Albert :
+
+| Fichiers | Cause |
+|---|---|
+| `test/cli/run/run-process.test.ts`, `run-stdin.process.test.ts`, `run-empty.process.test.ts`, `test/cli/acp/config-options.test.ts`, `lifecycle.test.ts`, `prompt-content.test.ts`, `test/cli/smokes/read-only.test.ts`, `test/kilocode/headless-session-drain.test.ts` | Ces tests configurent un fournisseur `test` (`test/test-model`, `test/parent`) : le point d'entrée n'accepte qu'Albert (« Model not found ») |
+| `test/cli/mcp-add.test.ts` | Configuration attendue dans `~/.config/kilo/` (désormais `~/.config/albert-code/`) ; serveur MCP distant refusé |
+| `test/cli/serve/serve-process.test.ts` (« kills the subprocess on scope close ») | Dépend de l'environnement : échoue aussi sur `upstream` lorsqu'il est lancé seul |
+
+Ces tests n'ont été ni désactivés ni modifiés, et le verrou n'a pas été affaibli pour eux. Pour les rendre verts, il faudrait les réécrire avec le fournisseur `albert` pointant vers un serveur local (`ALBERT_BASE_URL=http://127.0.0.1:…`). Ce travail reste à faire.
+
+Attention : sans `ALBERT_BASE_URL`, ces tests font contacter `albert.api.etalab.gouv.fr` par la CLI (hôte autorisé, réponse 401 sans clé). La CI d'Albert Code ne les lance donc pas.
+
+Les tests ciblés de la CI (`test/albert`, `test/config`, `test/tool/registry.test.ts`, `test/plugin`, `test/provider`, `test/session`, et les suites de `core`, `albert`, `kilo-telemetry` et `kilo-vscode`) passent.
