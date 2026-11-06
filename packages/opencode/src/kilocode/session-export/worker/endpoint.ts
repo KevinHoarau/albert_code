@@ -1,6 +1,7 @@
-export const defaultEndpoint = "https://supermassive-black-hole.kiloapps.io/v1/session-export/batch"
+// albert_change - session export removed: no upload endpoint
+export const defaultEndpoint = ""
 
-const hosts = new Set(["supermassive-black-hole.kiloapps.io"])
+const hosts = new Set<string>()
 
 export function resolveEndpoint(opts: { endpoint?: string; env?: string; allowCustom?: boolean }): string {
   const endpoint = opts.endpoint ?? opts.env ?? defaultEndpoint

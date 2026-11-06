@@ -47,6 +47,7 @@ export class Uploader {
   }
 
   async flush(_reason: string): Promise<void> {
+    return // albert_change - session export removed: batches are never uploaded
     if (this.active) {
       this.requested = true
       return this.active

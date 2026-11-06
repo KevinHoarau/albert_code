@@ -175,30 +175,6 @@ export namespace KiloSessions {
     clearInFlightCache(gitBranchKeyPrefix + Instance.worktree)
   }
 
-  async function authValid(token: string) {
-    const newTokenValidKey = tokenValidKeyTemplate + token
-
-    if (newTokenValidKey !== tokenValidKey) {
-      clearInFlightCache(tokenValidKey)
-
-      tokenValidKey = newTokenValidKey
-    }
-
-    return withInFlightCache(tokenValidKey, 15 * 60_000, async () => {
-      const response = await fetch(`${KILO_API_BASE}/api/user`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }).catch(() => undefined)
-
-      // Don't cache transient network failures; allow future calls to retry.
-      if (!response) return undefined
-
-      const valid = response.ok
-      return valid
-    })
-  }
-
   async function kilocodeToken() {
     return withInFlightCache(tokenKey, ttlMs, async () => {
       const auth = await runtime.runPromise((svc) => svc.get("kilo"))
@@ -245,34 +221,9 @@ export namespace KiloSessions {
     }
   }
 
+  // albert_change - no ingest client: sessions are never sent to Kilo
   async function getClient(): Promise<Client | undefined> {
-    return withInFlightCache(clientKey, ttlMs, async () => {
-      const token = await kilocodeToken()
-      if (!token) return undefined
-
-      const valid = await authValid(token)
-      if (!valid) return undefined
-
-      const base = process.env["KILO_SESSION_INGEST_URL"] ?? "https://ingest.kilosessions.ai"
-      const baseHeaders: Record<string, string> = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      }
-
-      const withHeaders = (init?: RequestInit) => {
-        const headers = new Headers(init?.headers)
-        for (const [k, v] of Object.entries(baseHeaders)) headers.set(k, v)
-        return {
-          ...init,
-          headers,
-        } satisfies RequestInit
-      }
-
-      return {
-        url: base,
-        fetch: (input, init) => fetch(input, withHeaders(init)),
-      }
-    })
+    return undefined
   }
 
   const shareDisabled = process.env["KILO_DISABLE_SHARE"] === "true" || process.env["KILO_DISABLE_SHARE"] === "1"
@@ -1008,11 +959,7 @@ export namespace KiloSessions {
         throw new Error("Unable to enable remote: no Kilo credentials found. Run `kilo auth login`.")
       }
 
-      const valid = await authValid(token)
-      if (valid === false) {
-        throw new Error("Unable to enable remote: invalid or expired Kilo credentials. Run `kilo auth login`.")
-      }
-      if (valid === undefined) throw new Error("Unable to enable remote: failed to verify Kilo credentials.")
+      throw new Error("Remote control is not available in Albert Code") // albert_change
 
       const url = (process.env["KILO_SESSION_INGEST_URL"] ?? "https://ingest.kilosessions.ai")
         .replace(/^https:\/\//, "wss://")
