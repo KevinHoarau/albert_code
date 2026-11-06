@@ -1,7 +1,5 @@
-import { release } from "node:os"
-import { Client } from "./client.js"
-import { Conda } from "./conda.js"
-import { Identity } from "./identity.js"
+// albert_change - telemetry removed: no client, no identity, nothing leaves the
+// machine. The API is kept so that call sites inherited from Kilo stay untouched.
 import { TelemetryEvent } from "./events.js"
 
 export interface TelemetryProperties {
@@ -91,100 +89,21 @@ export interface McpAuthCompletedProperties extends McpAuthStartedProperties {
 }
 
 export namespace Telemetry {
-  let initialized = false
   let startTime = 0
-  let probe = 0
-  let props: TelemetryProperties = {
-    appName: "kilo-cli",
-    appVersion: "unknown",
-    platform: process.platform,
-    os_name: process.platform,
-    os_version: release(),
-    os_arch: process.arch,
-  }
 
-  export async function init(options: { dataPath: string; version: string; enabled: boolean }): Promise<void> {
-    if (initialized) return
-
-    Identity.setDataPath(options.dataPath)
-    props.appVersion = options.version
-
-    const app = process.env.KILO_APP_NAME
-    if (app) props.appName = app
-    const editor = process.env.KILO_EDITOR_NAME
-    if (editor) props.editorName = editor
-    const platform = process.env.KILO_PLATFORM
-    if (platform) props.platform = platform
-    const version = process.env.KILO_APP_VERSION
-    if (version) props.appVersion = version
-    const vscodeVersion = process.env.KILO_VSCODE_VERSION
-    if (vscodeVersion) props.vscodeVersion = vscodeVersion
-
-    Client.init(options.dataPath)
-
-    const level = process.env.KILO_TELEMETRY_LEVEL
-    const enabled = level ? level === "all" : options.enabled
-    Client.setEnabled(enabled)
-
-    await Promise.all([Identity.getMachineId(), enabled ? refreshConda() : Promise.resolve()])
-
-    initialized = true
+  export async function init(_options: { dataPath: string; version: string; enabled: boolean }): Promise<void> {
     startTime = Date.now()
   }
 
-  export function setEnabled(value: boolean) {
-    if (value === Client.isEnabled()) return
-    Client.setEnabled(value)
-    delete props.aauClientToken
-    if (value) void refreshConda()
-    else probe++
-  }
-
-  async function refreshConda() {
-    const current = ++probe
-    const token = await Conda.clientToken()
-    if (current !== probe || !Client.isEnabled()) return
-    if (token) props.aauClientToken = token
-  }
+  export function setEnabled(_value: boolean) {}
 
   export function isEnabled(): boolean {
-    return Client.isEnabled()
+    return false
   }
 
-  export async function updateIdentity(token: string | null, accountId?: string): Promise<void> {
-    if (!isEnabled()) return
+  export async function updateIdentity(_token: string | null, _accountId?: string): Promise<void> {}
 
-    const previousId = Identity.getDistinctId()
-    await Identity.updateFromKiloAuth(token, accountId)
-
-    const email = Identity.getUserId()
-    if (email && previousId && email !== previousId) {
-      // Link the anonymous machineId to the authenticated email
-      Client.alias(email, previousId)
-    }
-  }
-
-  export function track(event: TelemetryEvent, properties?: Record<string, unknown>) {
-    const org = Identity.getOrganizationId()
-    const data = { ...properties }
-    delete data.aauClientToken
-    Client.capture(event, {
-      ...props,
-      ...data,
-      ...(Identity.getUserId() &&
-        (event === TelemetryEvent.CLI_START || event === TelemetryEvent.AUTH_SUCCESS) && {
-          $set: {
-            ...(org && { kilocodeOrganizationId: org }),
-            appName: props.appName,
-            appVersion: props.appVersion,
-            platform: props.platform,
-            os_name: props.os_name,
-            os_version: props.os_version,
-            os_arch: props.os_arch,
-          },
-        }),
-    })
-  }
+  export function track(_event: TelemetryEvent, _properties?: Record<string, unknown>) {}
 
   // CLI Lifecycle
   export function trackCliStart() {
@@ -193,9 +112,7 @@ export namespace Telemetry {
 
   // Upload queued events without blocking. Call after bootstrap so the flush
   // overlaps with command execution and shutdown() stays fast (#10242).
-  export function flushInBackground() {
-    Client.flushInBackground()
-  }
+  export function flushInBackground() {}
 
   export function trackCliExit(exitCode?: number) {
     track(TelemetryEvent.CLI_EXIT, {
@@ -368,7 +285,5 @@ export namespace Telemetry {
     track(TelemetryEvent.FEEDBACK_SUBMITTED, props)
   }
 
-  export async function shutdown(timeoutMs?: number): Promise<void> {
-    await Client.shutdown(timeoutMs)
-  }
+  export async function shutdown(_timeoutMs?: number): Promise<void> {}
 }
