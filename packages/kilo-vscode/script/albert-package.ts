@@ -13,7 +13,12 @@ import { $ } from "bun"
 import { createHash } from "node:crypto"
 import { chmodSync, existsSync, mkdirSync, rmSync } from "node:fs"
 import path from "node:path"
-import { copyKiloSandboxWorker, copySandboxResources, copyTreeSitterResources } from "../src/services/cli-backend/cli-resources"
+import {
+  copyKiloSandboxWorker,
+  copySandboxResources,
+  copyTreeSitterResources,
+} from "../src/services/cli-backend/cli-resources"
+import { ids } from "./albert-ids"
 
 const root = path.join(import.meta.dir, "..")
 const opencode = path.join(root, "..", "opencode")
@@ -45,6 +50,15 @@ await $`bun run check-types:webview`.cwd(root)
 await $`bun run lint`.cwd(root)
 await $`node esbuild.js --production`.cwd(root)
 
+// Own VS Code identifiers, so Albert Code can run next to Kilo Code.
+console.log("Renaming VS Code identifiers...")
+for (const file of new Bun.Glob("dist/**/*.{js,mjs,cjs,json,html,css}").scanSync({ cwd: root })) {
+  const full = path.join(root, file)
+  const text = await Bun.file(full).text()
+  const next = ids(text)
+  if (next !== text) await Bun.write(full, next)
+}
+
 console.log("Copying the CLI binary and its resources...")
 const dest = path.join(bin, "kilo")
 await $`cp ${cli} ${dest}`
@@ -66,9 +80,18 @@ rmSync(tmp)
 rmSync(path.join(out, path.dirname(rg.member)), { recursive: true, force: true })
 
 console.log("Packaging...")
-await $`${path.join(root, "node_modules", ".bin", "vsce")} package --no-dependencies --skip-license --target ${target} -o ${vsix}`
-  .cwd(root)
-  .env({ ...process.env, npm_config_ignore_scripts: "true" })
+// vsce reads package.json from the extension directory: the renamed manifest is
+// swapped in for the packaging only.
+const manifest = path.join(root, "package.json")
+const source = await Bun.file(manifest).text()
+await Bun.write(manifest, ids(source))
+try {
+  await $`${path.join(root, "node_modules", ".bin", "vsce")} package --no-dependencies --skip-license --target ${target} -o ${vsix}`
+    .cwd(root)
+    .env({ ...process.env, npm_config_ignore_scripts: "true" })
+} finally {
+  await Bun.write(manifest, source)
+}
 
 await $`bun script/albert-scan.ts ${vsix}`.cwd(root)
 console.log(`VSIX: ${vsix}`)

@@ -43,6 +43,14 @@ Aucun identifiant de modèle n'est codé en dur. Au démarrage, la CLI lit `GET 
 
 Après un changement de clé ou d'URL, VS Code propose de recharger la fenêtre.
 
+### Coexistence avec Kilo Code
+
+Albert Code peut être installé à côté de Kilo Code. Au packaging, tous les identifiants VS Code sont renommés : commandes, vues, panneaux, réglages, clés de contexte et types de tâches passent de `kilo-code.*` à `albert-code.*`. L'état de l'Agent Manager d'un projet est stocké dans `.kilo/albert-agent-manager.json` au lieu de `.kilo/agent-manager.json`. Les deux extensions ne partagent ni commande ni état ; elles partagent seulement les fichiers de configuration du projet (`.kilo/kilo.json`, règles, agents).
+
+Une seule interaction connue subsiste : les deux Agent Managers interceptent les commandes de panneau de VS Code (`workbench.action.togglePanel`…). La seconde extension activée perd uniquement le suivi de visibilité de son terminal d'agent.
+
+Les réglages VS Code d'Albert Code s'appellent donc `albert-code.*` (par exemple `albert-code.language`). Une version de développement lancée depuis les sources (`bun run extension`) garde les identifiants Kilo : ne la lancez pas à côté de Kilo Code.
+
 Les données, le cache et la configuration de la CLI vivent dans des dossiers `albert-code` (`~/.local/share/albert-code`, `~/.cache/albert-code`, `~/.config/albert-code`). Ils ne sont jamais partagés avec une installation de Kilo.
 
 ## Ce qui a été retiré
@@ -122,6 +130,7 @@ bun --cwd packages/kilo-vscode script/albert-package.ts --rebuild-cli
 | `bash packages/albert/e2e/run.sh <bin/kilo>` | **Test réseau E2E** : CLI réelle dans un espace réseau isolé, faux serveur compatible OpenAI ; démarrage, session, appel d'outil, titre, commit, redémarrage ; échec à la moindre requête DNS, au moindre paquet sortant ou refus du verrou |
 | `bash packages/albert/e2e/negative.sh <bin/kilo>` | **Test négatif** : une fuite volontaire doit être détectée |
 | `bash packages/albert/e2e/run.sh --vscode <vsix>` | VS Code réel sur un profil vierge, dans l'espace isolé (nécessite un affichage ou `xvfb-run`) |
+| `E2E_ALSO=<dossier de Kilo Code> bash packages/albert/e2e/run.sh --vscode <vsix>` | Coexistence : Kilo Code et Albert Code dans le même VS Code, sans doublon d'enregistrement ; seuls les refus du verrou d'Albert décident du verdict réseau |
 
 Le test réseau doit passer avant toute fusion depuis Kilo (voir [UPSTREAM.md](UPSTREAM.md)).
 

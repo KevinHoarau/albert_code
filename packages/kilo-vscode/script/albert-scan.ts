@@ -5,12 +5,15 @@
 //
 // A string in the bundle is not a flow: the runtime guard and the isolated E2E
 // test decide what is reachable. This report is the input for that review.
-// The scan fails only when a host that must have been removed with its code
-// (telemetry, session ingest) is still present in a shipped file.
+// The scan fails when a host that must have been removed with its code
+// (telemetry, session ingest) is still present in a shipped file, or when a
+// VS Code identifier is still in Kilo's namespace (Albert Code must be able to
+// run next to Kilo Code).
 import { $ } from "bun"
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
+import { contributed } from "./albert-ids"
 
 const vsix = path.resolve(process.argv[2] ?? "")
 if (!fs.existsSync(vsix)) throw new Error(`usage: albert-scan.ts <vsix>`)
@@ -63,7 +66,7 @@ function group(file: string) {
 const files = [...new Bun.Glob("**/*").scanSync({ cwd: ext, onlyFiles: true })].map((file) => path.join(ext, file))
 const found = new Map<string, Map<string, number>>()
 for (const file of files) {
-  const text = group(file) === "cli binary" ? (await $`strings -n 6 ${file}`.text()) : fs.readFileSync(file, "latin1")
+  const text = group(file) === "cli binary" ? await $`strings -n 6 ${file}`.text() : fs.readFileSync(file, "latin1")
   for (const host of [...hosts, ...removed]) {
     const count = text.split(host).length - 1
     if (!count) continue
@@ -78,12 +81,32 @@ console.log(`|---|---|---|---|---|`)
 for (const host of [...hosts, ...removed]) {
   const row = found.get(host)
   const cell = (name: string) => String(row?.get(name) ?? 0)
-  console.log(`| ${host} | ${cell("extension host")} | ${cell("webview / workers")} | ${cell("cli binary")} | ${cell("other")} |`)
+  console.log(
+    `| ${host} | ${cell("extension host")} | ${cell("webview / workers")} | ${cell("cli binary")} | ${cell("other")} |`,
+  )
 }
+
+// Coexistence with Kilo Code: no contributed identifier may stay in Kilo's
+// namespace, and no Kilo identifier may remain in the bundles.
+const manifest = JSON.parse(fs.readFileSync(path.join(ext, "package.json"), "utf8"))
+const shared = contributed(manifest).filter((id) => /^kilo/i.test(id))
+const bundles = files
+  .filter((file) => /\.(js|json|html|css)$/.test(file) && group(file) !== "cli binary")
+  .filter((file) =>
+    /kilo-code\.new\b|kilo-code\.SidebarProvider|kilo-code-ActivityBar|kilo-worktree-(setup|run)/.test(
+      fs.readFileSync(file, "utf8"),
+    ),
+  )
+  .map((file) => path.relative(ext, file))
+console.log(`\nidentifiers contributed: ${contributed(manifest).length}, in Kilo's namespace: ${shared.length}`)
 
 fs.rmSync(dir, { recursive: true, force: true })
 const left = removed.filter((host) => found.has(host))
 if (left.length) {
   console.error(`removed hosts still present: ${left.join(", ")}`)
+  process.exit(1)
+}
+if (shared.length || bundles.length) {
+  console.error(`Kilo identifiers still shipped: ${[...shared, ...bundles].join(", ")}`)
   process.exit(1)
 }

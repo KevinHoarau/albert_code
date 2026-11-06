@@ -32,3 +32,12 @@ bin/.cli-version
 
 # Include WAV assets used by extension-host notification playback
 !audio-wav/**
+
+# albert_change start - no Kilo internal docs, tests, tooling config or Kilo logo font in the VSIX
+docs/**
+tests/**
+.storybook/**
+bunfig.toml
+knip.json
+assets/icons/kilo-icon-font.woff2
+# albert_change end

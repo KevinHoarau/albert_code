@@ -111,6 +111,7 @@ Après résolution des conflits, et avant de commiter la fusion :
 | Télémétrie | `packages/kilo-telemetry/*` | Garder les stubs ; si l'amont ajoute une fonction, l'ajouter vide. Ne jamais réintroduire `posthog-node` |
 | Extension | `esbuild.js`, `package.json` (manifeste), `src/extension.ts`, `src/KiloProvider.ts`, `server-manager.ts`, `provider-actions.ts`, `features.ts`, `webview-html-utils.ts`, onglets de réglages, `model-selection.ts`, `language-utils.ts`, i18n `t()`, `constants.ts`, icônes | Le manifeste a été réécrit (identité, commandes et réglages retirés) : réappliquer les retraits sur les nouvelles entrées amont |
 | Tests amont adaptés | Tests de `kilo-vscode` et `opencode` portant `albert_change` | Ajuster les attentes (libellés Albert Code, CSP, dossier `albert-code`) |
+| Identifiants VS Code | `packages/kilo-vscode/script/albert-ids.ts` | Les sources gardent `kilo-code.new.*` ; le packaging renomme tout en `albert-code.*`. Si l'amont introduit un nouvel espace de noms (autre préfixe que `kilo-code.new`, `kilo-code.SidebarProvider`, `kilo-code-ActivityBar`, `kilo-code.agentTerminalFocus`, `kilo-code.nextEdit`, `kilo-worktree-*`, `agent-manager.json`), ajouter une règle : `tests/unit/albert-ids.test.ts` et `albert-scan.ts` échouent sinon |
 | Workflows | `.github/workflows/*` | Les workflows Kilo vivent dans `disabled/` ; un workflow amont modifié y sera détecté comme renommé |
 
 ## Tests amont incompatibles par construction
