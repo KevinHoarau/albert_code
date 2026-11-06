@@ -8,7 +8,7 @@ import type { AgentManagerSettingsHandler } from "./kilo-provider/options"
 type PanelView = "settings" | "profile" | "indexing"
 
 const PANEL_TITLES: Record<PanelView, string> = {
-  settings: "Kilo Settings",
+  settings: "Albert Code Settings", // albert_change
   profile: "Kilo Profile",
   indexing: "Codebase Indexing",
 }

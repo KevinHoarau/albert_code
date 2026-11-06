@@ -196,9 +196,9 @@ const AboutKiloCodeTab: Component<AboutKiloCodeTabProps> = (props) => {
         </div>
       </div>
 
-      {/* Community & Support */}
+      {/* albert_change start - origin, license and privacy; no Kilo community links or telemetry setting */}
       <div style={sectionStyle}>
-        <h4 style={headingStyle}>{language.t("settings.aboutKiloCode.community")}</h4>
+        <h4 style={headingStyle}>About</h4>
         <p
           style={{
             "font-size": "var(--kilo-font-size-12)",
@@ -207,19 +207,9 @@ const AboutKiloCodeTab: Component<AboutKiloCodeTabProps> = (props) => {
             "line-height": "1.5",
           }}
         >
-          {language.t("settings.aboutKiloCode.feedback.prefix")}{" "}
-          <span style={linkStyle} onClick={() => open("https://github.com/Kilo-Org/kilocode")}>
-            GitHub
-          </span>
-          ,{" "}
-          <span style={linkStyle} onClick={() => open("https://reddit.com/r/kilocode")}>
-            Reddit
-          </span>
-          , {language.t("settings.aboutKiloCode.feedback.or")}{" "}
-          <span style={linkStyle} onClick={() => open("https://kilo.ai/discord")}>
-            Discord
-          </span>
-          .
+          Albert Code is an unofficial fork of Kilo Code (itself derived from OpenCode), distributed under the MIT
+          license. It is not a product of the French administration. It only connects to the Albert API
+          (albert.api.etalab.gouv.fr) and to its own local backend, and it sends no telemetry.
         </p>
         <p
           style={{
@@ -229,36 +219,10 @@ const AboutKiloCodeTab: Component<AboutKiloCodeTabProps> = (props) => {
             "line-height": "1.5",
           }}
         >
-          {language.t("settings.aboutKiloCode.support.prefix")}{" "}
-          <span style={linkStyle} onClick={() => open("https://kilo.ai/support")}>
-            kilo.ai/support
-          </span>
-          .
+          Shell commands run by the agent and local MCP servers are not covered by the network lock: see the README.
         </p>
       </div>
-
-      {/* Telemetry */}
-      <div style={sectionStyle}>
-        <h4 style={headingStyle}>{language.t("settings.aboutKiloCode.telemetry.title")}</h4>
-        <p
-          style={{
-            "font-size": "var(--kilo-font-size-12)",
-            color: "var(--vscode-descriptionForeground)",
-            margin: "0 0 12px 0",
-            "line-height": "1.5",
-          }}
-        >
-          {language.t("settings.aboutKiloCode.telemetry.description")}
-        </p>
-        <Button
-          variant="secondary"
-          size="small"
-          onClick={() => vscode.postMessage({ type: "openVSCodeSettings", query: "telemetry.telemetryLevel" })}
-        >
-          <Icon name="settings-gear" />
-          {language.t("settings.aboutKiloCode.telemetry.openSettings")}
-        </Button>
-      </div>
+      {/* albert_change end */}
 
       {/* CLI Server */}
       <div style={sectionStyle}>

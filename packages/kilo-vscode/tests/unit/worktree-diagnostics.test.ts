@@ -1,3 +1,4 @@
+// albert_change - diagnostics carry the Albert Code name
 import { describe, expect, it } from "bun:test"
 import { diagnostics, probeTool } from "../../src/agent-manager/worktree-diagnostics"
 import { runDoctor } from "../../src/agent-manager/worktree-doctor"
@@ -141,7 +142,7 @@ describe("runDoctor", () => {
     })
 
     // A command that reveals nothing looks like a command that did nothing.
-    expect(lines).toEqual(["Kilo Agent Manager — no project is open."])
+    expect(lines).toEqual(["Albert Code Agent Manager — no project is open."])
     expect(revealed).toBe(1)
   })
 

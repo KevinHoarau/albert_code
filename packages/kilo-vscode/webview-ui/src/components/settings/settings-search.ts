@@ -101,6 +101,7 @@ const EXCLUDED_KEYS = new Set([
   "settings.autoCleanup.defaultRetention.title",
   "settings.webTools.webSearch.title",
   "agentManager.browser.title",
+  "settings.aboutKiloCode.telemetry.title", // albert_change - telemetry removed
 ])
 
 /** Searchable rows whose title key does not end in `.title`, or that need a description override. */

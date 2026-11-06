@@ -26,7 +26,7 @@ export class DiffVirtualProvider implements vscode.Disposable {
   private fontConfigDisposable: vscode.Disposable | undefined
 
   constructor(private readonly extensionUri: vscode.Uri) {
-    this.outputChannel = vscode.window.createOutputChannel("Kilo Diff Virtual")
+    this.outputChannel = vscode.window.createOutputChannel("Albert Code Diff Virtual") // albert_change
   }
 
   private log(...args: unknown[]) {

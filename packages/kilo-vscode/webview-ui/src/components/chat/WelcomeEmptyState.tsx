@@ -50,7 +50,7 @@ export const KiloLogo = () => {
         </div>
       </Show>
       <div class="kilo-logo-layer kilo-logo-static">
-        <img src={`${icons}/${file}`} alt="Kilo Code" />
+        <img src={`${icons}/${file}`} alt="Albert Code" />
       </div>
     </div>
   )

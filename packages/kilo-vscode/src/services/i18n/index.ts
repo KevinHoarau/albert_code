@@ -20,6 +20,7 @@ import { dict as tr } from "./tr"
 import { dict as uk } from "./uk"
 import { dict as zh } from "./zh"
 import { dict as zht } from "./zht"
+import { brand } from "../../albert/brand" // albert_change
 
 const bundles: Record<string, Record<string, string>> = {
   ar,
@@ -92,5 +93,5 @@ export function translate(
 
 export function t(key: keyof typeof enDict | string, vars?: Record<string, string | number>): string {
   const locale = selectedLocale(require("vscode") as typeof import("vscode"))
-  return translate(locale, key, vars)
+  return brand(translate(locale, key, vars)) // albert_change
 }

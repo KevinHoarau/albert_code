@@ -1,3 +1,4 @@
+// albert_change - UI strings carry the Albert Code name
 import assert from "node:assert/strict"
 import { harness } from "./comment-harness"
 import type { PRReviewRequest } from "../../src/shared/pr-comment-actions"
@@ -87,7 +88,7 @@ const remote = node("#remote")
 const remote2 = node("#remote2")
 
 // Local-only destination exposes Kilo actions, never the GitHub split button.
-assert.equal(button("send-kilo", local).textContent, "Send to Kilo")
+assert.equal(button("send-kilo", local).textContent, "Send to Albert Code")
 assert.equal(button("save", local).textContent, "Save")
 assert.equal(button("cancel", local).textContent, "Cancel")
 assert.equal(local.querySelector('[data-action="send-primary"]'), null, "no split button without a PR")

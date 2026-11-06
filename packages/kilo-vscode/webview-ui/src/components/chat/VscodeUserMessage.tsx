@@ -10,6 +10,7 @@ import { BrowserReferences } from "./BrowserReferences"
 import { ReviewComments } from "./ReviewComments"
 import { useLanguage } from "../../context/language"
 import { useVSCode } from "../../context/vscode"
+import { brand } from "../../../../src/albert/brand" // albert_change
 
 interface VscodeUserMessageProps {
   message: Message
@@ -69,7 +70,7 @@ export const VscodeUserMessage: Component<VscodeUserMessageProps> = (props) => {
     if (!view()) return undefined
     return (
       <div class="agent-manager-attribution" data-collapsed={collapsed() ? "" : undefined} dir="ltr">
-        <span class="agent-manager-attribution-label">{view()?.label}</span>
+        <span class="agent-manager-attribution-label">{brand(view()?.label ?? "")}</span> {/* albert_change */}
         <Show when={attribution()}>
           <Show
             when={props.onSelectSession && props.isSessionOpen?.(attribution() ?? "") !== false}

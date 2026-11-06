@@ -20,6 +20,7 @@ import { dict as tr } from "./tr"
 import { dict as uk } from "./uk"
 import { dict as zht } from "./zht"
 import { type dict as enDict } from "./en"
+import { brand } from "../../../albert/brand" // albert_change
 
 const bundles: Record<string, Record<string, string>> = {
   ar,
@@ -71,7 +72,7 @@ function loadTranslations(): Record<string, string> {
 const translations: Record<string, string> = loadTranslations()
 
 export function t(key: keyof typeof enDict, vars?: Record<string, string | number>): string {
-  let text = translations[key] ?? key
+  let text = brand(translations[key] ?? key) // albert_change
   if (vars) {
     for (const [k, v] of Object.entries(vars)) {
       text = text.replaceAll(`{{${k}}}`, String(v))

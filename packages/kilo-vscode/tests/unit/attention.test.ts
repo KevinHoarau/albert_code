@@ -1,3 +1,4 @@
+// albert_change - notification texts carry the Albert Code name
 import { describe, expect, it } from "bun:test"
 import * as vscode from "vscode"
 import type { TuiAttentionSoundName } from "@kilocode/plugin/tui"
@@ -177,7 +178,7 @@ describe("AttentionService", () => {
     const test = setup({ notifications: true, capture: false })
     test.event(event({ type: "question.asked", properties: { id: "q1", sessionID: "s1" } }))
 
-    expect(test.messages).toEqual([{ message: "Kilo needs your input.", style: "info" }])
+    expect(test.messages).toEqual([{ message: "Albert Code needs your input.", style: "info" }])
     test.service.dispose()
     test.restore()
   })
@@ -192,7 +193,7 @@ describe("AttentionService", () => {
     await Bun.sleep(0)
 
     expect(test.messages).toEqual([
-      { message: "Kilo needs your input. Workspace: kilo-vscode | Session: Add notifications", style: "info" },
+      { message: "Albert Code needs your input. Workspace: kilo-vscode | Session: Add notifications", style: "info" },
     ])
     test.service.dispose()
     test.restore()
@@ -205,8 +206,8 @@ describe("AttentionService", () => {
     test.event(event({ type: "permission.asked", properties: { id: "p1", sessionID: "s1" } }))
 
     expect(test.messages).toEqual([
-      { message: "Kilo task completed.", style: "info" },
-      { message: "Kilo needs permission.", style: "warning" },
+      { message: "Albert Code task completed.", style: "info" },
+      { message: "Albert Code needs permission.", style: "warning" },
     ])
     test.service.dispose()
     test.restore()
@@ -228,10 +229,10 @@ describe("AttentionService", () => {
     // The OS toast is a transient, informational ping; the VS Code notification
     // persists as an actionable "Show" entry for when the user returns.
     expect(alerts).toEqual([
-      { message: "Kilo needs your input.", workspace: "kilo-vscode", session: "Add notifications" },
+      { message: "Albert Code needs your input.", workspace: "kilo-vscode", session: "Add notifications" },
     ])
     expect(test.messages).toEqual([
-      { message: "Kilo needs your input. Workspace: kilo-vscode | Session: Add notifications", style: "info" },
+      { message: "Albert Code needs your input. Workspace: kilo-vscode | Session: Add notifications", style: "info" },
     ])
     test.service.dispose()
     test.restore()
@@ -241,7 +242,7 @@ describe("AttentionService", () => {
     const test = setup({ notifications: true, osNotifications: true, focused: false, capture: false })
     test.event(event({ type: "question.asked", properties: { id: "q1", sessionID: "s1" } }))
 
-    expect(test.messages).toEqual([{ message: "Kilo needs your input.", style: "info" }])
+    expect(test.messages).toEqual([{ message: "Albert Code needs your input.", style: "info" }])
     test.service.dispose()
     test.restore()
   })
@@ -284,7 +285,7 @@ describe("AttentionService", () => {
 
     expect(alerts).toEqual([])
     expect(test.messages).toEqual([
-      { message: "Kilo needs your input. Workspace: kilo-vscode | Session: Add notifications", style: "info" },
+      { message: "Albert Code needs your input. Workspace: kilo-vscode | Session: Add notifications", style: "info" },
     ])
     test.service.dispose()
     test.restore()
@@ -320,7 +321,7 @@ describe("AttentionService", () => {
     test.event(event({ type: "question.asked", properties: { id: "q1", sessionID: "s1" } }))
     test.event(event({ type: "question.asked", properties: { id: "q2", sessionID: "s2" } }))
 
-    expect(test.messages).toEqual([{ message: "Kilo needs your input.", style: "info" }])
+    expect(test.messages).toEqual([{ message: "Albert Code needs your input.", style: "info" }])
     test.service.dispose()
     test.restore()
   })
@@ -373,7 +374,7 @@ describe("AttentionService", () => {
     expect(test.messages).toEqual([])
     test.event(event({ type: "session.turn.close", properties: { sessionID: "s1", reason: "interrupted" } }))
 
-    expect(test.messages).toEqual([{ message: "Kilo task stopped due to an error.", style: "error" }])
+    expect(test.messages).toEqual([{ message: "Albert Code task stopped due to an error.", style: "error" }])
     test.service.dispose()
     test.restore()
   })
@@ -388,7 +389,7 @@ describe("AttentionService", () => {
     test.event(event({ type: "session.status", properties: { sessionID: "s1", status: { type: "retry" } } }))
     test.event(event({ type: "session.turn.close", properties: { sessionID: "s1", reason: "completed" } }))
 
-    expect(test.messages).toEqual([{ message: "Kilo task completed.", style: "info" }])
+    expect(test.messages).toEqual([{ message: "Albert Code task completed.", style: "info" }])
     test.service.dispose()
     test.restore()
   })

@@ -50,7 +50,7 @@ export async function collect(ctx: ProjectContext, host: DoctorHost): Promise<st
 /** Run the diagnostics command: collect, log, and reveal the report. */
 export async function runDoctor(ctx: ProjectContext | undefined, host: DoctorHost): Promise<void> {
   if (!ctx) {
-    show(host, "Kilo Agent Manager — no project is open.")
+    show(host, "Albert Code Agent Manager — no project is open." /* albert_change */)
     return
   }
   const text = await collect(ctx, host)

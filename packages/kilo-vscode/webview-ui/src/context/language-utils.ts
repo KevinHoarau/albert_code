@@ -1,3 +1,4 @@
+import { brand } from "../../../src/albert/brand" // albert_change
 export type Locale =
   | "en"
   | "zh"
@@ -91,7 +92,8 @@ export function normalizeLocale(lang: string): Locale {
 /**
  * Perform {{key}} template interpolation against a params record.
  */
-export function resolveTemplate(text: string, params?: Record<string, string | number | boolean | undefined>): string {
+export function resolveTemplate(raw: string, params?: Record<string, string | number | boolean | undefined>): string {
+  const text = brand(raw) // albert_change
   if (!params) return text
   return text.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (_, rawKey) => {
     const value = params[String(rawKey)]

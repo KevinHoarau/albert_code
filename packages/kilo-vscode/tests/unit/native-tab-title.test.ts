@@ -1,3 +1,4 @@
+// albert_change - the default title is Albert Code
 import { describe, expect, it } from "bun:test"
 import type { Session } from "@kilocode/sdk/v2/client"
 import { nativeTitle } from "../../src/kilo-provider/native-tab-title"
@@ -6,9 +7,9 @@ const session = (title: string | null) => ({ title }) as Session
 
 describe("nativeTitle", () => {
   it("uses the default title without a useful session title", () => {
-    expect(nativeTitle(null)).toBe("Kilo Code")
-    expect(nativeTitle(session(""))).toBe("Kilo Code")
-    expect(nativeTitle(session("New session - 2026-05-06T10:39:00.000Z"))).toBe("Kilo Code")
+    expect(nativeTitle(null)).toBe("Albert Code")
+    expect(nativeTitle(session(""))).toBe("Albert Code")
+    expect(nativeTitle(session("New session - 2026-05-06T10:39:00.000Z"))).toBe("Albert Code")
   })
 
   it("keeps short session titles", () => {
@@ -43,7 +44,7 @@ describe("nativeTitle", () => {
     for (const state of ["busy", "waiting", "done", "scheduled", "error", "idle", "idle", "invalid", null]) {
       await listener.current?.({ type: "sessionActivity", state })
     }
-    expect(titles).toEqual(["◔ Kilo Code", "⚠ Kilo Code", "✓ Kilo Code", "◷ Kilo Code", "⚠ Kilo Code", "Kilo Code"])
+    expect(titles).toEqual(["◔ Albert Code", "⚠ Albert Code", "✓ Albert Code", "◷ Albert Code", "⚠ Albert Code", "Albert Code"])
     provider.dispose()
   })
 
