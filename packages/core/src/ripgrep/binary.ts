@@ -98,6 +98,12 @@ export namespace RipgrepBinary {
             const target = path.join(Global.Path.bin, `rg${process.platform === "win32" ? ".exe" : ""}`)
             if (yield* fs.isFile(target).pipe(Effect.orDie)) return target
 
+            // albert_change start - rg ships next to the CLI binary and is never downloaded at runtime
+            const bundled = path.join(path.dirname(process.execPath), path.basename(target))
+            if (yield* fs.isFile(bundled).pipe(Effect.orDie)) return bundled
+            if (process.env.ALBERT_CODE === "1") throw new Error("ripgrep (rg) not found next to the CLI or on PATH")
+            // albert_change end
+
             const platformKey = `${process.arch}-${process.platform}` as keyof typeof PLATFORM
             const config = PLATFORM[platformKey]
             if (!config) throw new Error(`unsupported platform for ripgrep: ${platformKey}`)

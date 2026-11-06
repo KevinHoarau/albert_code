@@ -246,6 +246,7 @@ const layer = Layer.effect(
     const get = (): Effect.Effect<Record<string, Provider>> => cachedGet
 
     const refresh = Effect.fn("ModelsDev.refresh")(function* (force = false) {
+      if (process.env.ALBERT_CODE === "1") return // albert_change - not even a forced refresh reaches models.dev
       if (!force && (yield* fresh())) return
       yield* Effect.scoped(
         Effect.gen(function* () {

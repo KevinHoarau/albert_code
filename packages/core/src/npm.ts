@@ -79,6 +79,12 @@ const layer = Layer.effect(
     const directory = (pkg: string) => path.join(global.cache, "packages", sanitize(pkg))
     const reify = (input: { dir: string; add?: string[] }) =>
       Effect.gen(function* () {
+        // albert_change start - no package is ever fetched from a registry at runtime
+        if (process.env.ALBERT_CODE === "1") {
+          yield* Effect.logWarning("runtime package installation is disabled", { dir: input.dir, add: input.add })
+          return yield* new InstallFailedError({ add: input.add ?? [], dir: input.dir })
+        }
+        // albert_change end
         yield* flock.acquire(`npm-install:${input.dir}`)
         const { Arborist } = yield* Effect.promise(() => import("@npmcli/arborist"))
         const add = input.add ?? []
