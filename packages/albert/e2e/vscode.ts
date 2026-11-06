@@ -13,6 +13,7 @@ const ext = path.join(root, "ext")
 const work = path.join(root, "work")
 const home = path.join(root, "home")
 const done = path.join(root, "done")
+const settings = path.join(root, "settings")
 const installed = fs.readdirSync(ext).find((name) => name.startsWith("albert-code.albert-code-"))
 
 function check(ok: unknown, what: string): asserts ok {
@@ -86,6 +87,7 @@ const proc = Bun.spawn(
       ALBERT_API_KEY: "e2e-key",
       ALBERT_GUARD_LOG: process.env.ALBERT_GUARD_LOG,
       E2E_DONE: done,
+      E2E_SETTINGS: settings,
     },
     stdout: Bun.file(path.join(root, "code.out")),
     stderr: Bun.file(path.join(root, "code.err")),
@@ -111,6 +113,11 @@ const id = tree
   .split(" ")[0]
 const xwd = id ? Bun.spawnSync(["xwd", "-silent", "-id", id, "-out", shot]) : undefined
 console.log(xwd?.exitCode === 0 ? `screenshot: ${shot}` : "screenshot: window not found")
+
+// Second capture: the settings panel, which opens on the Albert tab.
+fs.writeFileSync(settings, "")
+await Bun.sleep(6_000)
+if (id) Bun.spawnSync(["xwd", "-silent", "-id", id, "-out", path.join(root, "settings.xwd")])
 
 const logs = [...new Bun.Glob("**/*.log").scanSync({ cwd: path.join(ud, "logs") })].map((file) =>
   path.join(ud, "logs", file),

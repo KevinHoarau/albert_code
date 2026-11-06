@@ -110,8 +110,10 @@ if [ "$scenario" != "0" ] || [ "$verdict" != "0" ]; then
   exit 1
 fi
 echo "PASS: no external connection attempt from Albert Code"
-if [ -f "$root/vscode.xwd" ]; then
-  mv "$root/vscode.xwd" "${TMPDIR:-/tmp}/albert-code-vscode.xwd"
-  echo "screenshot kept: ${TMPDIR:-/tmp}/albert-code-vscode.xwd"
-fi
+for shot in vscode settings; do
+  if [ -f "$root/$shot.xwd" ]; then
+    mv "$root/$shot.xwd" "${TMPDIR:-/tmp}/albert-code-$shot.xwd"
+    echo "screenshot kept: ${TMPDIR:-/tmp}/albert-code-$shot.xwd"
+  fi
+done
 rm -rf "$root"
