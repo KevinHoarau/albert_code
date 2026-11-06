@@ -10,6 +10,7 @@ import { useLanguage } from "../../context/language"
 import { useConfig } from "../../context/config"
 import { useSession } from "../../context/session"
 import ModelsTab from "./ModelsTab"
+import AlbertTab from "./AlbertTab" // albert_change
 import * as Sandboxing from "./sandboxing"
 import { useServer } from "../../context/server"
 import type { MigrationSource } from "../../types/messages"
@@ -268,7 +269,7 @@ const Settings: Component<SettingsProps> = (props) => {
   const vscode = useVSCode()
   const { loading, isDirty, saving, saveError, saveConfig, discardConfig, features } = useConfig()
   const session = useSession()
-  const [active, setActive] = createSignal(Albert.tab(props.tab ?? "models")) // albert_change
+  const [active, setActive] = createSignal(Albert.tab(props.tab ?? "albert")) // albert_change
   const [errorExpanded, setErrorExpanded] = createSignal(false)
   // Keep requested tabs registered while config loads so Tabs does not reset them to Models.
   const indexing = createMemo(
@@ -403,6 +404,12 @@ const Settings: Component<SettingsProps> = (props) => {
               onDismiss={search.clear}
             />
           </div>
+          {/* albert_change start - Albert tab first */}
+          <Tabs.Trigger value="albert" aria-label={language.t("settings.albert.title")}>
+            <Icon name="providers" />
+            <span class="label">{language.t("settings.albert.title")}</span>
+          </Tabs.Trigger>
+          {/* albert_change end */}
           <Tabs.Trigger value="models" aria-label={language.t("settings.models.title")}>
             <Icon name="models" />
             <span class="label">{language.t("settings.models.title")}</span>
@@ -471,6 +478,12 @@ const Settings: Component<SettingsProps> = (props) => {
           </Tabs.Trigger>
         </Tabs.List>
 
+        {/* albert_change start */}
+        <Tabs.Content value="albert">
+          <h3>{language.t("settings.albert.title")}</h3>
+          <AlbertTab />
+        </Tabs.Content>
+        {/* albert_change end */}
         <Tabs.Content value="models">
           <h3>{language.t("settings.models.title")}</h3>
           <ModelsTab />

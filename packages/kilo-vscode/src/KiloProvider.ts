@@ -180,6 +180,7 @@ import { watchRestore } from "./kilo-provider/prompt-focus"
 import type { ProjectRef, SessionRef, WorktreeRef } from "./agent-manager/project/route"
 import { indexingConsentStore, registeredProjects } from "./indexing-consent"
 import { EMPTY_KILO_EMBEDDING_MODEL_CATALOG } from "@kilocode/kilo-gateway" // albert_change
+import * as AlbertPanel from "./albert/panel" // albert_change
 import { fetchImageModels } from "./image-generation/models"
 import { fetchSpeechToTextModels } from "./speech-to-text/catalog"
 import { SPEECH_TO_TEXT_MODELS } from "./speech-to-text/models"
@@ -1272,6 +1273,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     this.telemetryStateDisposable = watchTelemetryState((msg) => this.postMessage(msg))
     this.webviewMessageDisposable = webview.onDidReceiveMessage(async (message) => {
       if (this.acknowledge(message)) return
+      if (await AlbertPanel.handle(message, this.extensionContext, (m) => this.postMessage(m))) return // albert_change
       const intercepted = await interceptMessage(message, {
         workspaceDir: (sid) => this.getWorkspaceDirectory(sid ?? this.currentSession?.id),
         post: (m) => this.postMessage(m),

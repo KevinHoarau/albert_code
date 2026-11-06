@@ -598,6 +598,26 @@ export const dict = {
   "settings.config.source.projectRoot": "Configuration racine du projet",
   "settings.config.source.projectKilocode": "Configuration obsolète .kilocode",
   "settings.config.source.projectOpencode": "Configuration obsolète .opencode",
+  // albert_change start - Albert settings tab
+  "settings.albert.title": "Albert",
+  "settings.albert.description":
+    "Albert Code ne communique qu'avec l'API Albert. La clé est conservée dans le SecretStorage de VS Code ; elle n'est plus jamais affichée ni écrite dans un fichier.",
+  "settings.albert.apiKey.title": "Clé API",
+  "settings.albert.apiKey.description":
+    "Clé de votre compte Albert. VS Code propose ensuite de recharger la fenêtre.",
+  "settings.albert.apiKey.placeholder": "Collez votre clé API Albert",
+  "settings.albert.apiKey.save": "Enregistrer",
+  "settings.albert.apiKey.remove": "Supprimer",
+  "settings.albert.apiKey.secret": "Configurée (SecretStorage de VS Code)",
+  "settings.albert.apiKey.env": "Fournie par la variable d'environnement ALBERT_API_KEY",
+  "settings.albert.apiKey.none": "Non configurée",
+  "settings.albert.url.title": "URL de l'API",
+  "settings.albert.url.description":
+    "Seul https://albert.api.etalab.gouv.fr est accepté. Laisser vide pour la valeur par défaut.",
+  "settings.albert.models.title": "Modèles disponibles",
+  "settings.albert.models.description": "Lus sur l'endpoint /v1/models d'Albert au démarrage du backend.",
+  "settings.albert.models.none": "Aucun modèle pour l'instant : vérifiez la clé API, puis rechargez la fenêtre.",
+  // albert_change end
   "settings.models.title": "Modèles",
 
   "settings.permissions.toast.updateFailed.title": "Échec de la mise à jour des permissions",

@@ -4,7 +4,5 @@
 // paths (kilo-code.*, .kilo/, aboutKiloCode) are not matched: only the product
 // name as a word.
 export function brand(text: string) {
-  return text
-    .replace(/\bKilo ?Code\b/g, "Albert Code")
-    .replace(/(?<![\w./@-])Kilo(?![\w./-])/g, "Albert Code")
+  return text.replace(/\bKilo ?Code\b/g, "Albert Code").replace(/(?<![\w./@-])Kilo(?![\w./-])/g, "Albert Code")
 }

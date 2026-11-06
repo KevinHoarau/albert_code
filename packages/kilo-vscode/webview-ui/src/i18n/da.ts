@@ -591,6 +591,24 @@ export const dict = {
   "settings.config.source.projectRoot": "Projekt rodkonfiguration",
   "settings.config.source.projectKilocode": "Forældet .kilocode konfiguration",
   "settings.config.source.projectOpencode": "Forældet .opencode konfiguration",
+  // albert_change start - Albert settings tab (English until translated)
+  "settings.albert.title": "Albert",
+  "settings.albert.description":
+    "Albert Code only talks to the Albert API. The key is stored in VS Code SecretStorage and is never shown again or written to a file.",
+  "settings.albert.apiKey.title": "API key",
+  "settings.albert.apiKey.description": "Key of your Albert account. VS Code then offers to reload the window.",
+  "settings.albert.apiKey.placeholder": "Paste your Albert API key",
+  "settings.albert.apiKey.save": "Save",
+  "settings.albert.apiKey.remove": "Remove",
+  "settings.albert.apiKey.secret": "Configured (VS Code SecretStorage)",
+  "settings.albert.apiKey.env": "Provided by the ALBERT_API_KEY environment variable",
+  "settings.albert.apiKey.none": "Not configured",
+  "settings.albert.url.title": "API URL",
+  "settings.albert.url.description": "Only https://albert.api.etalab.gouv.fr is accepted. Leave empty for the default.",
+  "settings.albert.models.title": "Available models",
+  "settings.albert.models.description": "Read from the Albert /v1/models endpoint when the backend starts.",
+  "settings.albert.models.none": "No model yet: check the API key, then reload the window.",
+  // albert_change end
   "settings.models.title": "Modeller",
 
   "settings.permissions.toast.updateFailed.title": "Kunne ikke opdatere tilladelser",

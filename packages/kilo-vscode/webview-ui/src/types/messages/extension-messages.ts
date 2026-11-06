@@ -1786,7 +1786,18 @@ export interface AgentManagerBrowserDevtoolsMessage {
   url: string
 }
 
+// albert_change start - Albert settings tab (the key itself is never sent)
+export interface AlbertStatusMessage {
+  type: "albertStatus"
+  key: "secret" | "env" | "none"
+  url: string
+  default: string
+  error?: string
+}
+// albert_change end
+
 export type ExtensionMessage =
+  | AlbertStatusMessage // albert_change
   | {
       type: "agentManager.resolveCommentResult" | "agentManager.unresolveCommentResult"
       projectId?: string

@@ -35,6 +35,7 @@ export interface SettingsEntry {
 
 /** Tabs in the order they appear in the settings rail. */
 export const SETTINGS_TABS: SettingsTab[] = [
+  { id: "albert", titleKey: "settings.albert.title", keywords: ["albert", "api key", "key", "url", "clé"] }, // albert_change
   { id: "models", titleKey: "settings.models.title", keywords: ["model", "llm", "default", "speech"] },
   // albert_change - providers, web tools and autocomplete tabs removed
   { id: "agentBehaviour", titleKey: "settings.agentBehaviour.title", keywords: ["agent", "mode", "mcp", "skill"] },
@@ -72,6 +73,7 @@ export const SETTINGS_TABS: SettingsTab[] = [
  * Groups not listed here are not searchable, which keeps dialog-only keys out.
  */
 const GROUP_TABS: Record<string, string> = {
+  albert: "albert", // albert_change
   aboutKiloCode: "aboutKiloCode",
   agentBehaviour: "agentBehaviour",
   autoApprove: "autoApprove",
@@ -102,6 +104,21 @@ const EXCLUDED_KEYS = new Set([
   "settings.webTools.webSearch.title",
   "agentManager.browser.title",
   "settings.aboutKiloCode.telemetry.title", // albert_change - telemetry removed
+  // albert_change start - rows of removed features
+  "settings.experimental.share.title",
+  "settings.experimental.imageGeneration.title",
+  "settings.experimental.imageGenerationModel.title",
+  "settings.models.speechToTextModel.title",
+  "settings.models.speechToTextBaseUrl.title",
+  "settings.models.speechToTextApiKey.title",
+  "settings.experimental.codeMode.title",
+  "settings.experimental.browserAutomation.title",
+  "settings.experimental.browserAutomation.systemChrome.title",
+  "settings.experimental.browserLinks.title",
+  "settings.experimental.remote.title",
+  "settings.autoApprove.maxCost.title",
+  "settings.models.hidePromptTraining.title",
+  // albert_change end
 ])
 
 /** Searchable rows whose title key does not end in `.title`, or that need a description override. */

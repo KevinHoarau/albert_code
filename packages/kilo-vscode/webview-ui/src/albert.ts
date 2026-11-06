@@ -3,7 +3,7 @@
 export const removed: ReadonlySet<string> = new Set(["providers", "browser", "autocomplete"])
 
 export function tab(value: string) {
-  return removed.has(value) ? "models" : value
+  return removed.has(value) ? "albert" : value
 }
 
 // Kilo account, cloud history and import, remote control, Kilo notifications

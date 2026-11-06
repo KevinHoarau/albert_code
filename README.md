@@ -29,11 +29,15 @@ Il n'embarque ni ffmpeg ni Playwright.
 
 ## Configuration
 
-| Réglage | Où | Effet |
-|---|---|---|
-| Clé API Albert | Commande **Albert Code: Set Albert API Key** (stockée dans le SecretStorage de VS Code), à défaut variable d'environnement `ALBERT_API_KEY` | Transmise à la CLI dans son environnement uniquement ; jamais écrite dans un fichier ni journalisée |
-| `albertCode.apiBaseUrl` | Réglages VS Code | URL de base, `https://albert.api.etalab.gouv.fr/v1` par défaut. Seul l'hôte Albert (en HTTPS) ou une adresse de bouclage (tests) est accepté |
-| `kilo-code.new.model.modelID` | Réglages VS Code | Modèle par défaut. Vide : le modèle par défaut calculé parmi ceux que renvoie `/v1/models` |
+Tout se règle dans le panneau **Albert Code → Paramètres**, onglet **Albert** (premier onglet) :
+
+| Réglage | Effet |
+|---|---|
+| Clé API | Stockée dans le SecretStorage de VS Code, jamais réaffichée ni écrite dans un fichier. À défaut, la variable d'environnement `ALBERT_API_KEY` est utilisée. Aussi disponible par la commande **Albert Code: Set Albert API Key** |
+| URL de l'API | Réglage `albertCode.apiBaseUrl`, `https://albert.api.etalab.gouv.fr/v1` par défaut. Seul l'hôte Albert (en HTTPS) ou une adresse de bouclage (tests) est accepté |
+| Modèles disponibles | Liste en lecture seule des modèles renvoyés par `/v1/models` |
+
+Le modèle par défaut, le petit modèle (titres, messages de commit), le modèle des sous-agents et celui de la compaction se choisissent dans l'onglet **Modèles**, parmi les modèles d'Albert.
 
 Aucun identifiant de modèle n'est codé en dur. Au démarrage, la CLI lit `GET /v1/models`, garde les modèles de chat et met la réponse en cache pour les démarrages hors ligne. Les titres de session et les messages de commit utilisent un modèle Albert.
 

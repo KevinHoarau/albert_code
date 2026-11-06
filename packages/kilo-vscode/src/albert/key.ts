@@ -11,6 +11,18 @@ export async function read(context: vscode.ExtensionContext) {
   return (await context.secrets.get(SECRET)) || process.env.ALBERT_API_KEY?.trim() || undefined
 }
 
+// Where the key comes from, without ever exposing it.
+export async function source(context: vscode.ExtensionContext): Promise<"secret" | "env" | "none"> {
+  if (await context.secrets.get(SECRET)) return "secret"
+  if (process.env.ALBERT_API_KEY?.trim()) return "env"
+  return "none"
+}
+
+export async function store(context: vscode.ExtensionContext, value: string) {
+  if (value.trim()) return context.secrets.store(SECRET, value.trim())
+  return context.secrets.delete(SECRET)
+}
+
 export function url() {
   const value = vscode.workspace.getConfiguration().get<string>(SETTING, BASE)?.trim()
   return base({ ALBERT_BASE_URL: value || BASE })
@@ -43,8 +55,7 @@ export function register(context: vscode.ExtensionContext) {
         ignoreFocusOut: true,
       })
       if (value === undefined) return
-      if (value.trim()) await context.secrets.store(SECRET, value.trim())
-      if (!value.trim()) await context.secrets.delete(SECRET)
+      await store(context, value)
     }),
     context.secrets.onDidChange((event) => {
       if (event.key === SECRET) void reload()

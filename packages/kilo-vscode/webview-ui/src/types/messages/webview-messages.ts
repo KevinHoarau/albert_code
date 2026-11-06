@@ -1737,6 +1737,11 @@ export interface DismissAgentMigrationBannerMessage {
 }
 
 export type WebviewMessage =
+  // albert_change start - Albert settings tab
+  | { type: "requestAlbertStatus" }
+  | { type: "setAlbertKey"; key: string }
+  | { type: "setAlbertUrl"; url: string }
+  // albert_change end
   | import("./agent-manager").BaseUpdateRequest
   | PRMergeRequest
   | { type: "sessionActivity"; state: Activity }
