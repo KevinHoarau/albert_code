@@ -10,9 +10,8 @@ function getConfiguration(section?: string, scope?: real.ConfigurationScope | nu
   return pin(real.workspace.getConfiguration(section, scope), section)
 }
 
-export const workspace: typeof real.workspace = new Proxy(real.workspace, {
-  get(target, prop, receiver) {
-    if (prop === "getConfiguration") return getConfiguration
-    return Reflect.get(target, prop, receiver)
-  },
+// Same as for configurations: derive instead of proxying, whatever the
+// property descriptors of the real API object are.
+export const workspace: typeof real.workspace = Object.create(real.workspace, {
+  getConfiguration: { value: getConfiguration, enumerable: true },
 })

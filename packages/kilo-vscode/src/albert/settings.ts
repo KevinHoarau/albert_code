@@ -41,17 +41,14 @@ function nested(full: string, value: unknown) {
   return out
 }
 
+// VS Code freezes configuration objects (their `get` is a non-configurable
+// data property), so a Proxy cannot override it. The pinned view inherits
+// everything from the real object and only defines its own `get`.
 export function pin<T extends Configuration>(cfg: T, section?: string): T {
-  return new Proxy(cfg, {
-    get(target, prop, receiver) {
-      if (prop === "get") {
-        return (key: string, fallback?: unknown) => {
-          const full = join(section, key)
-          if (full in forced) return forced[full]
-          return nested(full, target.get(key, fallback))
-        }
-      }
-      return Reflect.get(target, prop, receiver)
-    },
-  })
+  const get = (key: string, fallback?: unknown) => {
+    const full = join(section, key)
+    if (full in forced) return forced[full]
+    return nested(full, cfg.get(key, fallback))
+  }
+  return Object.create(cfg, { get: { value: get, enumerable: true } }) as T
 }
