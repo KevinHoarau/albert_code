@@ -90,7 +90,7 @@ export async function fetchProviderData(client: KiloClient, dir: string) {
   })
   delete authStates[KILO_PROVIDER_ID]
   if (kiloAuth?.authenticated && kiloAuth.type) authStates[KILO_PROVIDER_ID] = kiloAuth.type
-  const organizationId = kiloAuth ? (kiloAuth.organizationId ?? null) : undefined
+  const organizationId = kiloAuth?.organizationId ?? null // albert_change - no Kilo account to wait for
   const defaults = { ...response.default }
   if (organizationId) {
     const models = all.find((item) => item.id === KILO_PROVIDER_ID)?.models ?? {}
@@ -111,7 +111,7 @@ export async function fetchProviderData(client: KiloClient, dir: string) {
     authStates,
     storedKeys,
     organizationId,
-    ready: !!kiloAuth,
+    ready: true, // albert_change
     unavailable: catalogUnavailable(response.failed, all, organizationId),
   }
 }

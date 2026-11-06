@@ -645,8 +645,9 @@ describe("fetchProviderData", () => {
     } as unknown as Parameters<typeof fetchProviderData>[0]
 
     const result = await fetchProviderData(client, "/workspace")
-    expect(result.ready).toBe(false)
-    expect(result.organizationId).toBeUndefined()
+    // albert_change - without a Kilo account the selection never waits for one
+    expect(result.ready).toBe(true)
+    expect(result.organizationId).toBeNull()
     expect(result.response.all.map((provider) => provider.id)).toEqual(["external"])
     expect(result.response.connected).toEqual(["external"])
     expect(result.response.default).toEqual({ external: "model" })

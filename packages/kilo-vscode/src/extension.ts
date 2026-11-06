@@ -17,7 +17,7 @@ import { formatBrowserFeedback } from "./shared/browser-feedback"
 import { EXTENSION_DISPLAY_NAME } from "./constants"
 import { KiloConnectionService } from "./services/cli-backend"
 import { retention } from "./services/task-cleanup/retention"
-import { registerAutocompleteProvider } from "./services/autocomplete"
+// albert_change - autocomplete provider import removed
 import { ensureBackendForAutocomplete } from "./services/autocomplete/ensure-backend"
 import { AutocompleteServiceManager } from "./services/autocomplete/AutocompleteServiceManager"
 import { AttentionService, showOSNotification } from "./services/attention"
@@ -44,6 +44,7 @@ import { isCursorHost } from "./utils"
 import { sameDirectory } from "./kilo-provider-utils"
 import { mcpAuth } from "./services/mcp-auth"
 import { showAuthUrl } from "./kilo-provider/mcp-oauth"
+import * as AlbertKey from "./albert/key" // albert_change
 
 let agentManager: AgentManagerProvider | undefined
 let caffeination: CaffeinationService | undefined
@@ -86,6 +87,8 @@ export async function activate(context: vscode.ExtensionContext) {
     theme: browserTheme,
   })
   context.subscriptions.push(vscode.window.onDidChangeActiveColorTheme(() => browserBroker.retheme()))
+
+  AlbertKey.register(context) // albert_change - Albert API key in SecretStorage, base URL setting
 
   // Create shared connection service (one server for all webviews)
   const connectionService = new KiloConnectionService(
@@ -569,8 +572,7 @@ export async function activate(context: vscode.ExtensionContext) {
     (item) => marketplacePanelProvider.openInstall(item),
     (item) => marketplacePanelProvider.focusItem(item),
   )
-  context.subscriptions.push(marketplaceNotifier)
-  marketplaceNotifier.start()
+  context.subscriptions.push(marketplaceNotifier) // albert_change - marketplace removed: the notifier never starts
 
   // Create sub-agent viewer provider (read-only editor panel for sub-agent sessions)
   const subAgentViewerProvider = new SubAgentViewerProvider(context.extensionUri, connectionService, context)
@@ -659,12 +661,7 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("kilo-code.new.sidebarTitle.agentManagerOpen", () => {
       track("agent_manager", "kilo-code.new.agentManagerOpen")
     }),
-    vscode.commands.registerCommand("kilo-code.new.sidebarTitle.marketplaceButtonClicked", () => {
-      track("marketplace", "kilo-code.new.marketplaceButtonClicked")
-    }),
-    vscode.commands.registerCommand("kilo-code.new.sidebarTitle.profileButtonClicked", () => {
-      track("profile", "kilo-code.new.profileButtonClicked")
-    }),
+    // albert_change - marketplace and Kilo profile commands removed
     vscode.commands.registerCommand("kilo-code.new.sidebarTitle.settingsButtonClicked", () => {
       track("settings", "kilo-code.new.settingsButtonClicked")
     }),
@@ -682,9 +679,6 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("kilo-code.new.agentManagerOpen", () => {
       agentManagerProvider.openPanel()
     }),
-    vscode.commands.registerCommand("kilo-code.new.marketplaceButtonClicked", (directory?: string | null) => {
-      marketplacePanelProvider.openPanel(directory)
-    }),
     vscode.commands.registerCommand("kilo-code.new.historyButtonClicked", () => {
       const tab = activeTabProvider()
       if (tab) tab.postMessage({ type: "action", action: "historyButtonClicked" })
@@ -701,9 +695,6 @@ export async function activate(context: vscode.ExtensionContext) {
       if (tab) tab.postMessage({ type: "action", action: "cyclePreviousAgentMode" })
       else provider.postMessage({ type: "action", action: "cyclePreviousAgentMode" })
       agentManagerProvider.postMessage({ type: "action", action: "cyclePreviousAgentMode" })
-    }),
-    vscode.commands.registerCommand("kilo-code.new.profileButtonClicked", () => {
-      settingsEditorProvider.openPanel("profile")
     }),
     vscode.commands.registerCommand("kilo-code.new.settingsButtonClicked", (tab?: string, projectId?: string) => {
       settingsEditorProvider.openPanel("settings", tab, projectId)
@@ -897,8 +888,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }),
   )
 
-  // Register autocomplete provider
-  void registerAutocompleteProvider(context, connectionService)
+  // albert_change - no inline autocomplete (it relied on the Kilo gateway FIM endpoint)
 
   // Register commit message generation
   registerCommitMessageService(context, connectionService)

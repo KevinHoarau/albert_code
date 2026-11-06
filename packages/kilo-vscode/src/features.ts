@@ -24,7 +24,7 @@ export function configFeatures(
     indexing: hasIndexingPlugin(config?.plugin ?? []),
     sandboxControls: process.platform !== "win32",
     backgroundSubagents,
-    speechToText: !remote,
+    speechToText: false, // albert_change - speech to text relied on third-party transcription endpoints
   }
 }
 

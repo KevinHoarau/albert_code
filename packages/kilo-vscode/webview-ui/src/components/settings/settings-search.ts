@@ -36,7 +36,7 @@ export interface SettingsEntry {
 /** Tabs in the order they appear in the settings rail. */
 export const SETTINGS_TABS: SettingsTab[] = [
   { id: "models", titleKey: "settings.models.title", keywords: ["model", "llm", "default", "speech"] },
-  { id: "providers", titleKey: "settings.providers.title", keywords: ["provider", "api key", "connect", "auth"] },
+  // albert_change - providers, web tools and autocomplete tabs removed
   { id: "agentBehaviour", titleKey: "settings.agentBehaviour.title", keywords: ["agent", "mode", "mcp", "skill"] },
   { id: "autoApprove", titleKey: "settings.autoApprove.title", keywords: ["permission", "approve", "cost"] },
   {
@@ -45,10 +45,8 @@ export const SETTINGS_TABS: SettingsTab[] = [
     keywords: ["worktree", "branch", "git"],
     conditional: true,
   },
-  { id: "browser", titleKey: "settings.webTools.title", keywords: ["browser", "web", "chrome", "playwright"] },
   { id: "checkpoints", titleKey: "settings.checkpoints.title", keywords: ["checkpoint", "undo", "cleanup"] },
   { id: "display", titleKey: "settings.display.title", keywords: ["display", "ui", "font", "theme"] },
-  { id: "autocomplete", titleKey: "settings.autocomplete.title", keywords: ["completion", "inline", "suggest"] },
   { id: "notifications", titleKey: "settings.notifications.title", keywords: ["notification", "sound", "alert"] },
   { id: "context", titleKey: "settings.context.title", keywords: ["memory", "compaction", "prune"] },
   { id: "commitMessage", titleKey: "settings.commitMessage.title", keywords: ["commit", "git", "message"] },
@@ -78,8 +76,7 @@ const GROUP_TABS: Record<string, string> = {
   agentBehaviour: "agentBehaviour",
   autoApprove: "autoApprove",
   autoCleanup: "checkpoints",
-  autocomplete: "autocomplete",
-  browser: "browser",
+  // albert_change - autocomplete, browser, providers and webTools groups removed
   checkpoints: "checkpoints",
   commitMessage: "commitMessage",
   context: "context",
@@ -90,15 +87,12 @@ const GROUP_TABS: Record<string, string> = {
   models: "models",
   notifications: "notifications",
   permissions: "autoApprove",
-  providers: "models",
   sandboxing: "sandboxing",
-  webTools: "browser",
 }
 
 /** Rows whose group tab differs from the tab that actually renders them. */
 const KEY_TAB_OVERRIDES: Record<string, string> = {
   "settings.context.compactionModel.title": "models",
-  "settings.autocomplete.model.title": "models",
 }
 
 /** i18n `*.title` keys under a mapped group that are not rendered rows. */
@@ -111,11 +105,6 @@ const EXCLUDED_KEYS = new Set([
 
 /** Searchable rows whose title key does not end in `.title`, or that need a description override. */
 const EXTRA_ENTRIES: SettingsEntry[] = [
-  {
-    tab: "browser",
-    titleKey: "settings.webTools.webSearch.enable",
-    descriptionKey: "settings.webTools.webSearch.description",
-  },
   { tab: "notifications", titleKey: "settings.notifications.sounds" },
   {
     tab: "agentManager",

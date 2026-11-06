@@ -1443,8 +1443,8 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           void this.fetchAndSendSessionModelUsage(message.sessionID, message.requestID)
           break
         case "login": {
-          const attempt = ++this.loginAttempt
-          await handleLogin(this.authCtx, attempt, () => this.loginAttempt)
+          // albert_change - "Sign in" asks for the Albert API key; there is no Kilo account
+          await vscode.commands.executeCommand("kilo-code.new.setAlbertApiKey")
           break
         }
         case "cancelLogin":
@@ -1469,8 +1469,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           await openConfig(message.scope, message.labels, this.getProjectDirectory(this.currentSession?.id))
           break
         case "openMarketplacePanel":
-          this.openMarketplacePanel(message.directory)
-          break
+          break // albert_change - marketplace removed
         case "forkSession":
           handleForkSession(this.forkCtx, message.sessionId, message.messageId).catch((e) =>
             console.error("[Kilo New] handleForkSession failed:", e),
@@ -1665,13 +1664,8 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
           this.sendTimelineSetting()
           break
         case "requestNotifications":
-          this.fetchAndSendNotifications().catch((e) =>
-            console.error("[Kilo New] fetchAndSendNotifications failed:", e),
-          )
-          break
         case "requestCloudSessions":
-          await handleRequestCloudSessions(this.cloudSessionCtx, message)
-          break
+          break // albert_change - no Kilo notifications and no cloud history
         case "requestGitRemoteUrl":
           void this.getGitRemoteUrl().then((url) => {
             this.postMessage({ type: "gitRemoteUrlLoaded", gitUrl: url ?? null })

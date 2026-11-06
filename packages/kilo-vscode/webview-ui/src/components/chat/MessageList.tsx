@@ -31,6 +31,7 @@ import { createRowHandoff } from "./transcript-row-handoff"
 import { RevertBanner } from "./RevertBanner"
 import { AccountSwitcher } from "../shared/AccountSwitcher"
 import { KiloNotifications } from "./KiloNotifications"
+import * as Albert from "../../albert" // albert_change
 import { TurnOutcome } from "../shared/TurnOutcome"
 import { QuestionDock } from "./QuestionDock"
 import { Virtualizer, type VirtualizerHandle } from "virtua/solid"
@@ -867,8 +868,11 @@ export const MessageList: Component<MessageListProps> = (props) => {
       </Show>
       <Show when={isEmpty()}>
         <div class="welcome-header" data-slot="welcome-header">
-          <AccountSwitcher class="account-switcher-welcome" />
-          <Show when={!props.introduction || props.readonly}>
+          {/* albert_change - no Kilo account or Kilo notifications */}
+          <Show when={Albert.kilo}>
+            <AccountSwitcher class="account-switcher-welcome" />
+          </Show>
+          <Show when={Albert.kilo && (!props.introduction || props.readonly)}>
             <KiloNotifications sessionID={props.sessionID} />
           </Show>
         </div>

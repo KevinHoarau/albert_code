@@ -94,8 +94,8 @@ describe("searchSettings", () => {
   })
 
   it("matches keywords", () => {
-    const results = searchSettings("playwright", translate)
-    expect(results.some((result) => result.tab === "browser")).toBe(true)
+    const results = searchSettings("worktree", translate) // albert_change - the browser tab is removed
+    expect(results.some((result) => result.tab === "agentManager")).toBe(true)
   })
 
   it("requires every token to match", () => {
@@ -104,9 +104,19 @@ describe("searchSettings", () => {
   })
 
   it("falls back to a tab-only result when only the category matches", () => {
-    const results = searchSettings("providers", translate)
-    const tab = results.find((result) => result.tab === "providers")
+    const results = searchSettings("beta", translate) // albert_change - the providers tab is removed
+    const tab = results.find((result) => result.tab === "experimental")
     expect(tab?.tabOnly).toBe(true)
+  })
+
+  // albert_change
+  it("never offers a removed tab", () => {
+    for (const query of ["playwright", "providers", "autocomplete", "api key"]) {
+      const tabs = searchSettings(query, translate).map((result) => result.tab)
+      expect(tabs).not.toContain("browser")
+      expect(tabs).not.toContain("providers")
+      expect(tabs).not.toContain("autocomplete")
+    }
   })
 
   it("restricts results to the supplied visible tabs", () => {

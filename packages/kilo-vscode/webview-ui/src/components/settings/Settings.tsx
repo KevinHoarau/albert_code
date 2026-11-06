@@ -29,16 +29,14 @@ import SettingsRow from "./SettingsRow"
 import SettingsSearch from "./SettingsSearch"
 import SettingsSearchResults from "./SettingsSearchResults"
 import { SETTINGS_TABS, type SettingsTab } from "./settings-search"
+import * as Albert from "../../albert" // albert_change
 import { useSettingsSearch } from "./useSettingsSearch"
 import { ProjectBranchDialog } from "../../../agent-manager/ProjectBranchDialog"
 
 const DisplayTab = lazy(() => import("./DisplayTab"))
-const ProvidersTab = lazy(() => import("./ProvidersTab"))
 const AgentBehaviourTab = lazy(() => import("./AgentBehaviourTab"))
 const AutoApproveTab = lazy(() => import("./AutoApproveTab"))
-const BrowserTab = lazy(() => import("./BrowserTab"))
 const CheckpointsTab = lazy(() => import("./CheckpointsTab"))
-const AutocompleteTab = lazy(() => import("./AutocompleteTab"))
 const NotificationsTab = lazy(() => import("./NotificationsTab"))
 const ContextTab = lazy(() => import("./ContextTab"))
 const CommitMessageTab = lazy(() => import("./CommitMessageTab"))
@@ -270,7 +268,7 @@ const Settings: Component<SettingsProps> = (props) => {
   const vscode = useVSCode()
   const { loading, isDirty, saving, saveError, saveConfig, discardConfig, features } = useConfig()
   const session = useSession()
-  const [active, setActive] = createSignal(props.tab ?? "models")
+  const [active, setActive] = createSignal(Albert.tab(props.tab ?? "models")) // albert_change
   const [errorExpanded, setErrorExpanded] = createSignal(false)
   // Keep requested tabs registered while config loads so Tabs does not reset them to Models.
   const indexing = createMemo(
@@ -309,7 +307,7 @@ const Settings: Component<SettingsProps> = (props) => {
     on(
       () => props.tab,
       (tab) => {
-        if (tab) setActive(tab)
+        if (tab) setActive(Albert.tab(tab)) // albert_change
       },
     ),
   )
@@ -324,7 +322,8 @@ const Settings: Component<SettingsProps> = (props) => {
     onTabChange("experimental")
   })
 
-  const onTabChange = (tab: string) => {
+  const onTabChange = (raw: string) => {
+    const tab = Albert.tab(raw) // albert_change
     setActive(tab)
     props.onTabChange?.(tab)
     vscode.postMessage({ type: "settingsTabChanged", tab })
@@ -408,10 +407,7 @@ const Settings: Component<SettingsProps> = (props) => {
             <Icon name="models" />
             <span class="label">{language.t("settings.models.title")}</span>
           </Tabs.Trigger>
-          <Tabs.Trigger value="providers" aria-label={language.t("settings.providers.title")}>
-            <Icon name="providers" />
-            <span class="label">{language.t("settings.providers.title")}</span>
-          </Tabs.Trigger>
+          {/* albert_change - tab removed */}
           <Tabs.Trigger value="agentBehaviour" aria-label={language.t("settings.agentBehaviour.title")}>
             <Icon name="brain" />
             <span class="label">{language.t("settings.agentBehaviour.title")}</span>
@@ -426,10 +422,7 @@ const Settings: Component<SettingsProps> = (props) => {
               <span class="label">{language.t("agentManager.settings.title")}</span>
             </Tabs.Trigger>
           </Show>
-          <Tabs.Trigger value="browser" aria-label={language.t("settings.webTools.title")}>
-            <Icon name="window-cursor" />
-            <span class="label">{language.t("settings.webTools.title")}</span>
-          </Tabs.Trigger>
+          {/* albert_change - tab removed */}
           <Tabs.Trigger value="checkpoints" aria-label={language.t("settings.checkpoints.title")}>
             <Icon name="branch" />
             <span class="label">{language.t("settings.checkpoints.title")}</span>
@@ -438,10 +431,7 @@ const Settings: Component<SettingsProps> = (props) => {
             <Icon name="eye" />
             <span class="label">{language.t("settings.display.title")}</span>
           </Tabs.Trigger>
-          <Tabs.Trigger value="autocomplete" aria-label={language.t("settings.autocomplete.title")}>
-            <Icon name="code-lines" />
-            <span class="label">{language.t("settings.autocomplete.title")}</span>
-          </Tabs.Trigger>
+          {/* albert_change - tab removed */}
           <Tabs.Trigger value="notifications" aria-label={language.t("settings.notifications.title")}>
             <Icon name="circle-check" />
             <span class="label">{language.t("settings.notifications.title")}</span>
@@ -485,10 +475,7 @@ const Settings: Component<SettingsProps> = (props) => {
           <h3>{language.t("settings.models.title")}</h3>
           <ModelsTab />
         </Tabs.Content>
-        <Tabs.Content value="providers">
-          <h3>{language.t("settings.providers.title")}</h3>
-          <ProvidersTab />
-        </Tabs.Content>
+        {/* albert_change - tab removed */}
         <Tabs.Content value="agentBehaviour">
           <h3>{language.t("settings.agentBehaviour.title")}</h3>
           <AgentBehaviourTab
@@ -507,10 +494,7 @@ const Settings: Component<SettingsProps> = (props) => {
             <AgentManagerTab projectId={props.agentManagerProjectId} />
           </Tabs.Content>
         </Show>
-        <Tabs.Content value="browser">
-          <h3>{language.t("settings.webTools.title")}</h3>
-          <BrowserTab />
-        </Tabs.Content>
+        {/* albert_change - tab removed */}
         <Tabs.Content value="checkpoints">
           <h3>{language.t("settings.checkpoints.title")}</h3>
           <CheckpointsTab />
@@ -519,10 +503,7 @@ const Settings: Component<SettingsProps> = (props) => {
           <h3>{language.t("settings.display.title")}</h3>
           <DisplayTab />
         </Tabs.Content>
-        <Tabs.Content value="autocomplete">
-          <h3>{language.t("settings.autocomplete.title")}</h3>
-          <AutocompleteTab onNavigateToModels={() => onTabChange("models")} />
-        </Tabs.Content>
+        {/* albert_change - tab removed */}
         <Tabs.Content value="notifications">
           <h3>{language.t("settings.notifications.title")}</h3>
           <NotificationsTab />

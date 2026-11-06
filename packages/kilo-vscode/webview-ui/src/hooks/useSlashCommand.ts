@@ -200,14 +200,7 @@ export function useSlashCommand(
         vscode.postMessage({ type: "openSettingsPanel" })
       },
     },
-    {
-      name: "remote",
-      description: "Toggle remote control",
-      hints: [],
-      action: () => {
-        vscode.postMessage({ type: "toggleRemote" })
-      },
-    },
+    // albert_change - no remote control
     {
       name: "sandbox",
       description: "Toggle sandbox",

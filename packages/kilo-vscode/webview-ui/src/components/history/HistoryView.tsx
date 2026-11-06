@@ -13,6 +13,7 @@ import { useLocalTabs } from "../../context/local-tabs"
 import { CloudImportDialog } from "../chat/CloudImportDialog"
 import SessionList from "./SessionList"
 import CloudSessionList from "./CloudSessionList"
+import * as Albert from "../../albert" // albert_change
 import type { SessionInfo } from "../../types/messages"
 
 interface HistoryViewProps {
@@ -118,6 +119,8 @@ const HistoryView: Component<HistoryViewProps> = (props) => {
           >
             {language.t("session.tab.local")}
           </button>
+          {/* albert_change - no cloud history */}
+          <Show when={Albert.kilo}>
           <button
             ref={cloud}
             id="history-tab-cloud"
@@ -133,6 +136,7 @@ const HistoryView: Component<HistoryViewProps> = (props) => {
           >
             {language.t("session.tab.cloud")}
           </button>
+          </Show>
           <Show when={worktreeIds()}>
             <button
               ref={worktree}
@@ -151,9 +155,11 @@ const HistoryView: Component<HistoryViewProps> = (props) => {
             </button>
           </Show>
         </div>
-        <Button variant="secondary" size="small" onClick={openImport} class="history-import-btn">
-          {language.t("session.cloud.import")}
-        </Button>
+        <Show when={Albert.kilo}>
+          <Button variant="secondary" size="small" onClick={openImport} class="history-import-btn">
+            {language.t("session.cloud.import")}
+          </Button>
+        </Show>
       </div>
 
       <div
@@ -180,7 +186,7 @@ const HistoryView: Component<HistoryViewProps> = (props) => {
         aria-labelledby="history-tab-cloud"
         hidden={tab() !== "cloud"}
       >
-        {tab() === "cloud" && <CloudSessionList onSelectSession={selectCloudSession} />}
+        {Albert.kilo && tab() === "cloud" && <CloudSessionList onSelectSession={selectCloudSession} />}
       </div>
       <Show when={worktreeIds()}>
         <div

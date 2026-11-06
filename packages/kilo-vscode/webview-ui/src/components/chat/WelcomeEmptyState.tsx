@@ -8,6 +8,7 @@ import { recentSessions } from "../../context/session-utils"
 import type { SessionInfo } from "../../types/messages"
 import { formatRelativeDate } from "../../utils/date"
 import { FeedbackDialog } from "./FeedbackDialog"
+import * as Albert from "../../albert" // albert_change
 import { WorkspaceScopeHint } from "./WorkspaceScopeHint"
 
 interface WelcomeEmptyStateProps {
@@ -87,10 +88,13 @@ export const WelcomeEmptyState: Component<WelcomeEmptyStateProps> = (props) => {
           </Show>
         </div>
       </Show>
-      <button class="feedback-button" onClick={() => dialog.show(() => <FeedbackDialog />)}>
-        <Icon name="bubble-5" size="small" />
-        {language.t("feedback.button")}
-      </button>
+      {/* albert_change - Kilo support and feedback links removed */}
+      <Show when={Albert.kilo}>
+        <button class="feedback-button" onClick={() => dialog.show(() => <FeedbackDialog />)}>
+          <Icon name="bubble-5" size="small" />
+          {language.t("feedback.button")}
+        </button>
+      </Show>
       {props.footer}
     </div>
   )

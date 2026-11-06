@@ -43,10 +43,10 @@ describe("Agent Manager settings navigation", () => {
   it("places the Agent Manager settings tab under Auto-Approve", () => {
     const autoApprove = settings.indexOf('value="autoApprove"')
     const agentManager = settings.indexOf('value="agentManager"')
-    const browser = settings.indexOf('value="browser"')
+    const checkpoints = settings.indexOf('value="checkpoints"') // albert_change - the browser tab is removed
     expect(autoApprove).toBeGreaterThan(-1)
     expect(autoApprove).toBeLessThan(agentManager)
-    expect(agentManager).toBeLessThan(browser)
+    expect(agentManager).toBeLessThan(checkpoints)
   })
 
   it("loads branches only when the default branch picker opens", () => {

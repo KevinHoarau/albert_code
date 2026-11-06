@@ -32,5 +32,15 @@ export function resolveModelSelection(input: {
     const model = validate(selection)
     if (model) return model
   }
-  return validate(input.fallback)
+  return validate(input.fallback) ?? albert(input.providers, input.defaults, validate) // albert_change
+}
+
+// albert_change - no model id is hard-coded: the CLI default for Albert, else its first discovered model
+function albert(
+  providers: Record<string, Provider>,
+  defaults: Record<string, string> | undefined,
+  validate: (selection: ModelSelection) => ModelSelection | null,
+) {
+  const model = defaults?.albert ?? Object.keys(providers.albert?.models ?? {}).at(0)
+  return model ? validate({ providerID: "albert", modelID: model }) : null
 }

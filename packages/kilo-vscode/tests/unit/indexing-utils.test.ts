@@ -126,10 +126,11 @@ describe("indexing feature detection", () => {
     expect(configFeatures({}, true).backgroundSubagents).toBe(true)
   })
 
-  it("disables speech input capture in remote windows", () => {
-    expect(configFeatures().speechToText).toBe(true)
+  // albert_change - speech to text is removed everywhere
+  it("never enables speech input capture", () => {
+    expect(configFeatures().speechToText).toBe(false)
     expect(configFeatures({}, false, true).speechToText).toBe(false)
-    expect(configFeatures({}, false, false).speechToText).toBe(true)
+    expect(configFeatures({}, false, false).speechToText).toBe(false)
   })
 
   it("enables indexing settings when the indexing plugin is present", () => {
