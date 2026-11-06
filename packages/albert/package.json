@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@albert-code/guard",
+  "version": "7.8.18",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "description": "Outbound network allowlist and forced runtime configuration for Albert Code",
+  "exports": {
+    ".": "./src/index.ts",
+    "./policy": "./src/policy.ts",
+    "./guard": "./src/guard.ts",
+    "./env": "./src/env.ts",
+    "./install": "./src/install.ts",
+    "./scoped/fetch": "./src/scoped/fetch.ts",
+    "./scoped/http": "./src/scoped/http.ts",
+    "./scoped/https": "./src/scoped/https.ts",
+    "./scoped/net": "./src/scoped/net.ts",
+    "./scoped/tls": "./src/scoped/tls.ts",
+    "./scoped/dns": "./src/scoped/dns.ts"
+  },
+  "scripts": {
+    "typecheck": "tsgo --noEmit",
+    "test": "bun test --timeout 30000"
+  },
+  "devDependencies": {
+    "@tsconfig/node22": "catalog:",
+    "@types/bun": "catalog:",
+    "@types/node": "catalog:",
+    "@typescript/native-preview": "catalog:",
+    "typescript": "catalog:"
+  }
+}
