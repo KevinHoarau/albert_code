@@ -140,9 +140,11 @@ function smokeEnv(root: string) {
 async function smokeModels(binaryPath: string) {
   const root = await fs.promises.mkdtemp(path.join(os.tmpdir(), "kilo-models-"))
   try {
-    const out = await $`${binaryPath} --pure models anthropic`.env(smokeEnv(root)).text()
-    if (out.split(/\r?\n/).some((line) => line.startsWith("anthropic/"))) return
-    throw new Error("Compiled binary did not list Anthropic models from the embedded snapshot")
+    // albert_change start - the embedded catalog only declares Albert; Anthropic must be unknown
+    const out = await $`${binaryPath} --pure models anthropic`.env(smokeEnv(root)).nothrow()
+    if (out.exitCode !== 0 && out.stderr.toString().includes("Provider not found: anthropic")) return
+    throw new Error("Compiled binary still knows a third-party provider")
+    // albert_change end
   } finally {
     await fs.promises
       .rm(root, { recursive: true, force: true })

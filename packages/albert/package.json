@@ -21,7 +21,9 @@
   },
   "scripts": {
     "typecheck": "tsgo --noEmit",
-    "test": "bun test --timeout 30000"
+    "test": "bun test --timeout 30000",
+    "e2e": "bash e2e/run.sh",
+    "e2e:negative": "bash e2e/negative.sh"
   },
   "devDependencies": {
     "@tsconfig/node22": "catalog:",
