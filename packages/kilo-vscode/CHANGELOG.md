@@ -1,3 +1,7 @@
+# albert-code
+
+Albert Code is based on Kilo Code 7.8.18. The entries below are Kilo Code's release notes, kept for reference.
+
 # kilo-code
 
 ## 7.8.18

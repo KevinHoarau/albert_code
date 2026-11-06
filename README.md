@@ -1,167 +1,126 @@
-<p align="center">
-  English | <a href="translations/README.zh.md">简体中文</a> | <a href="translations/README.zht.md">繁體中文</a> | <a href="translations/README.ko.md">한국어</a> | <a href="translations/README.de.md">Deutsch</a> | <a href="translations/README.es.md">Español</a> | <a href="translations/README.fr.md">Français</a> | <a href="translations/README.it.md">Italiano</a> | <a href="translations/README.da.md">Dansk</a> | <a href="translations/README.ja.md">日本語</a> | <a href="translations/README.pl.md">Polski</a> | <a href="translations/README.ru.md">Русский</a> | <a href="translations/README.bs.md">Bosanski</a> | <a href="translations/README.ar.md">العربية</a> | <a href="translations/README.no.md">Norsk</a> | <a href="translations/README.br.md">Português (Brasil)</a> | <a href="translations/README.th.md">ไทย</a> | <a href="translations/README.tr.md">Türkçe</a> | <a href="translations/README.uk.md">Українська</a> | <a href="translations/README.bn.md">বাংলা</a> | <a href="translations/README.gr.md">Ελληνικά</a> | <a href="translations/README.vi.md">Tiếng Việt</a>
-</p>
+# Albert Code
 
-<p align="center">
-  <a href="https://kilo.ai"><img width="250" alt="Kilo Code logo" src="https://github.com/user-attachments/assets/bdb0c174-b9fd-40ad-a47b-f3aab9b54e8d" /></a>
-</p>
+Albert Code est une extension VS Code d'agent de développement (chat, agents et modes, édition de fichiers, terminal, sessions locales, MCP local). À l'exécution, elle ne contacte que l'API Albert (`albert.api.etalab.gouv.fr`, compatible OpenAI).
 
-<p align="center">The open source coding agent for building with AI in VS Code, JetBrains, or the CLI.</p>
+C'est un fork non officiel de [Kilo Code](https://github.com/Kilo-Org/kilocode) v7.8.18, lui-même dérivé d'[OpenCode](https://github.com/anomalyco/opencode). Il est distribué sous licence MIT (voir [LICENSE](LICENSE)). Ce n'est pas un produit de l'administration, et le nom « Albert Code » n'est pas autorisé à ce jour : ne rien publier.
 
-<p align="center">
-  <a href="https://marketplace.visualstudio.com/items?itemName=kilocode.Kilo-Code"><img src="https://raster.shields.io/badge/VS_Code_Marketplace-007ACC?style=flat&logo=visualstudiocode&logoColor=white" alt="VS Code Marketplace" height="20"></a>
-  <a href="https://www.npmjs.com/package/@kilocode/cli"><img alt="npm" src="https://raster.shields.io/npm/v/@kilocode/cli?style=flat" height="20" /></a>
-  <a href="https://x.com/kilocode"><img src="https://raster.shields.io/badge/kilocode-000000?style=flat&logo=x&logoColor=white" alt="X (Twitter)" height="20"></a>
-  <a href="https://blog.kilo.ai"><img src="https://raster.shields.io/badge/Blog-555?style=flat&logo=substack&logoColor=white" alt="Blog" height="20"></a>
-  <a href="https://kilo.ai/discord"><img src="https://raster.shields.io/badge/Join%20Discord-5865F2?style=flat&logo=discord&logoColor=white" alt="Discord" height="20"></a>
-  <a href="https://www.reddit.com/r/kilocode/"><img src="https://raster.shields.io/badge/Join%20r%2Fkilocode-D84315?style=flat&logo=reddit&logoColor=white" alt="Reddit" height="20"></a>
-</p>
+Documents liés :
 
-![Kilo-in-VS-Code-and-CLI](https://github.com/user-attachments/assets/0536ca59-ed81-4512-9e05-d186187a1b52)
+- [NETWORK.md](NETWORK.md) : inventaire des flux sortants et décisions ;
+- [UPSTREAM.md](UPSTREAM.md) : version de base et procédure de mise à jour depuis Kilo.
 
----
+## Installation
 
-Kilo Code is an AI coding agent that meets you everywhere you work: [VS Code](https://kilo.ai/landing/vs-code), [JetBrains](https://kilo.ai/features/jetbrains-native), and the [CLI](https://kilo.ai/cli). It's open source with open pricing. You pick from 500+ models, switch between them mid-task, and pay the model provider's rate with zero markup. No API keys required to start.
-
-### Installation
-
-Pick where you want to run Kilo.
-
-<details open>
-<summary><strong>VS Code</strong></summary>
-
-<br>
-
-Install the [Kilo Code extension](vscode:extension/kilocode.kilo-code) directly, or grab it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=kilocode.Kilo-Code). Create an account and you'll have access to 500+ models including GPT-6 Astra, Claude Fable 5.1, Gemini 3.8 Flash, Grok 4.6, and DeepSeek V4.1 Flash, all at provider pricing.
-
-</details>
-
-<details open>
-<summary><strong>CLI</strong></summary>
-
-<br>
+Le VSIX n'est publié sur aucune place de marché. Installez-le depuis un fichier :
 
 ```bash
-# npm
-npm install -g @kilocode/cli
-
-# curl
-curl -fsSL https://kilo.ai/cli/install | bash
-
-# pnpm
-pnpm add -g @kilocode/cli
-
-# bun
-bun add -g @kilocode/cli
-
-# Homebrew (macOS / Linux)
-brew install Kilo-Org/tap/kilo
-
-# Arch Linux (AUR)
-paru -S kilo-bin
+code --install-extension albert-code-linux-x64.vsix
 ```
 
-Then run `kilo` in any project directory to start.
+Ou bien : VS Code → Extensions → `…` → *Install from VSIX…*.
 
-</details>
+La seule cible construite à ce jour est `linux-x64`. Le VSIX embarque :
 
-<details>
-<summary><strong>JetBrains</strong></summary>
+- la CLI (`bin/kilo`) ;
+- `ripgrep` (`bin/rg`) ;
+- `bwrap` pour le bac à sable des commandes.
 
-<br>
+Il n'embarque ni ffmpeg ni Playwright.
 
-Install the [Kilo Code plugin](https://plugins.jetbrains.com/plugin/28350-kilo-code) from the JetBrains Marketplace, or search "Kilo Code" in `Settings → Plugins` inside any JetBrains IDE.
+## Configuration
 
-</details>
+| Réglage | Où | Effet |
+|---|---|---|
+| Clé API Albert | Commande **Albert Code: Set Albert API Key** (stockée dans le SecretStorage de VS Code), à défaut variable d'environnement `ALBERT_API_KEY` | Transmise à la CLI dans son environnement uniquement ; jamais écrite dans un fichier ni journalisée |
+| `albertCode.apiBaseUrl` | Réglages VS Code | URL de base, `https://albert.api.etalab.gouv.fr/v1` par défaut. Seul l'hôte Albert (en HTTPS) ou une adresse de bouclage (tests) est accepté |
+| `kilo-code.new.model.modelID` | Réglages VS Code | Modèle par défaut. Vide : le modèle par défaut calculé parmi ceux que renvoie `/v1/models` |
 
-<details>
-<summary><strong>Cloud Agent</strong></summary>
+Aucun identifiant de modèle n'est codé en dur. Au démarrage, la CLI lit `GET /v1/models`, garde les modèles de chat et met la réponse en cache pour les démarrages hors ligne. Les titres de session et les messages de commit utilisent un modèle Albert.
 
-<br>
+Après un changement de clé ou d'URL, VS Code propose de recharger la fenêtre.
 
-Run Kilo from the web, no local machine needed, at [app.kilo.ai/cloud](https://app.kilo.ai/cloud).
+Les données, le cache et la configuration de la CLI vivent dans des dossiers `albert-code` (`~/.local/share/albert-code`, `~/.cache/albert-code`, `~/.config/albert-code`). Ils ne sont jamais partagés avec une installation de Kilo.
 
-</details>
+## Ce qui a été retiré
 
-<details>
-<summary><strong>Code Reviews</strong></summary>
+- Compte Kilo, passerelle Kilo, `kilo-auto`, BYOK et tous les fournisseurs autres qu'Albert.
+- Historique cloud, partage, contrôle à distance, « Continue in Cloud », envoi des sessions (code supprimé).
+- Télémétrie, y compris la dépendance PostHog (code supprimé).
+- Autocomplétion, marketplace, recherche web, `webfetch`, clonage de dépôt, génération d'images, navigateur intégré, MCP distant, reconnaissance vocale.
+- Mises à jour automatiques, téléchargement de LSP, de formateurs ou de paquets npm à l'exécution.
+- Indexation du code. Elle pourrait revenir avec les embeddings d'Albert, à condition d'embarquer LanceDB au build.
 
-<br>
+## Verrou réseau
 
-Set up automated AI code reviews on your pull requests at [app.kilo.ai/code-reviews](https://app.kilo.ai/code-reviews).
+- **CLI :** au démarrage, avant tout autre module, la CLI impose son environnement et enveloppe `fetch`, `WebSocket`, `http(s)`, `net`, `tls`, `dns`, `dgram` et `Bun.connect`. Seuls la boucle locale et `albert.api.etalab.gouv.fr:443` passent. Toute autre tentative échoue et est journalisée (sortie d'erreur et `ALBERT_GUARD_LOG`).
+- **Hôte de l'extension :** le même contrôle s'applique au bundle de l'extension (l'hôte d'extensions est partagé avec les autres extensions, on ne modifie donc pas ses globaux).
+- **Webview :** CSP stricte, sans image ni cadre distants.
 
-</details>
+Le détail des flux se trouve dans [NETWORK.md](NETWORK.md).
 
-<details>
-<summary>Install the CLI from GitHub Releases (binaries)</summary>
+## Limites (à lire)
 
-Download the latest binary from the [Releases page](https://github.com/Kilo-Org/kilocode/releases).
+**L'isolation n'est pas totale.** Le verrou ne contrôle pas :
 
-| Platform | Asset |
+- les commandes lancées par l'agent avec l'outil `bash` / le terminal (`curl`, `git`, `npm`…) ;
+- les serveurs MCP locaux, qui sont des sous-processus ;
+- `git` et `gh` lancés par l'Agent Manager, et le navigateur ouvert par un lien ;
+- VS Code lui-même. Le test VS Code observe par exemple `redirector.gvt1.com` (mises à jour de composants Chromium) et `main.vscode-cdn.net`, contactés par VS Code même sans l'extension.
+
+Chaque commande `bash` exige une confirmation par défaut. Ne modifiez pas cette règle si vous dépendez de l'isolation.
+
+### Cloisonnement strict par pare-feu système (Linux)
+
+Pour un cloisonnement strict, exécutez VS Code sous un utilisateur dédié, puis n'autorisez que la boucle locale, le DNS et Albert. Exemple avec nftables :
+
+```bash
+# 1. Utilisateur dédié
+sudo useradd -m albertcode
+# 2. Règles : l'utilisateur albertcode ne sort que vers la boucle locale, le DNS et Albert
+ALBERT_IPS=$(getent ahostsv4 albert.api.etalab.gouv.fr | awk '{print $1}' | sort -u | paste -sd, -)
+sudo nft -f - <<EOF
+table inet albertcode {
+  chain out {
+    type filter hook output priority 0; policy accept;
+    meta skuid != "albertcode" accept
+    oifname "lo" accept
+    udp dport 53 accept
+    tcp dport 53 accept
+    ip daddr { $ALBERT_IPS } tcp dport 443 accept
+    counter log prefix "albertcode-blocked " drop
+  }
+}
+EOF
+# 3. Lancer VS Code sous cet utilisateur
+sudo -u albertcode -H code
+```
+
+Si les adresses d'Albert changent, il faut relancer l'étape 2. Avec un proxy d'entreprise, autorisez le proxy au lieu des adresses d'Albert, et filtrez l'hôte au niveau du proxy. Les tentatives bloquées apparaissent dans le journal du noyau (`journalctl -k | grep albertcode-blocked`).
+
+## Construire
+
+Prérequis : `bun@1.4.4` et Zig 0.14.0 (pour l'aide Bubblewrap ; empreinte SHA-256 dans `.github/workflows/albert.yml`). Les accès réseau (registre npm, GitHub Releases, ziglang.org) n'ont lieu qu'au build.
+
+```bash
+bun install
+export ZIG=/chemin/vers/zig
+bun --cwd packages/kilo-vscode script/albert-package.ts --rebuild-cli
+# -> packages/kilo-vscode/out/albert-code-linux-x64.vsix, puis inventaire des hôtes présents
+```
+
+## Tests
+
+| Commande | Ce qu'elle vérifie |
 |---|---|
-| Windows (most PCs) | `kilo-windows-x64.zip` |
-| macOS (Apple Silicon) | `kilo-darwin-arm64.zip` |
-| macOS (Intel) | `kilo-darwin-x64.zip` |
-| Linux x64 | `kilo-linux-x64.tar.gz` |
-| Linux ARM | `kilo-linux-arm64.tar.gz` |
+| `bun test` dans `packages/albert` | Liste d'autorisation, enveloppes réseau, variables imposées |
+| `bun test test/albert` dans `packages/opencode` | Configuration imposée, découverte des modèles, absence d'envoi des sessions |
+| `bun run test:unit` dans `packages/kilo-vscode` | Tests de l'extension, CSP, réglages verrouillés, marque |
+| `bash packages/albert/e2e/run.sh <bin/kilo>` | **Test réseau E2E** : CLI réelle dans un espace réseau isolé, faux serveur compatible OpenAI ; démarrage, session, appel d'outil, titre, commit, redémarrage ; échec à la moindre requête DNS, au moindre paquet sortant ou refus du verrou |
+| `bash packages/albert/e2e/negative.sh <bin/kilo>` | **Test négatif** : une fuite volontaire doit être détectée |
+| `bash packages/albert/e2e/run.sh --vscode <vsix>` | VS Code réel sur un profil vierge, dans l'espace isolé (nécessite un affichage ou `xvfb-run`) |
 
-Notes: `x64-baseline` is a compatibility build for older CPUs without AVX. `musl` is the statically linked build for Alpine or minimal Docker images without glibc. `kilo-vscode-*.vsix` is the VS Code extension package, not the CLI. `Source code` archives are for building from source.
+Le test réseau doit passer avant toute fusion depuis Kilo (voir [UPSTREAM.md](UPSTREAM.md)).
 
-</details>
+## Licence et crédits
 
-### Agents
-
-Kilo ships with specialized agents you switch between depending on the task. You can also build your own custom agents.
-
-- **Code** - The default. Implements and edits code from natural language.
-- **Plan** - Designs architecture and writes implementation plans before any code gets written.
-- **Ask** - Answers questions about your codebase without touching any files.
-- **Debug** - Troubleshoots and traces issues.
-
-Learn more about [agents and custom agents](https://kilo.ai/docs/code-with-ai/agents/using-agents).
-
-### What it does
-
-- **Code generation** from natural language, across multiple files.
-- **Inline autocomplete** with ghost-text suggestions and tab to accept.
-- **Self-checking** so the agent reviews and corrects its own work.
-- **Terminal and browser control** to run commands and automate the web.
-- **Kilo Marketplace** to install agents, skills, MCP servers, and plugins that extend what the agent can do.
-- **500+ models** with mid-task switching, so you can match latency, cost, and reasoning to the job.
-
-### Autonomous Mode (CI/CD)
-
-Run `kilo run` with `--auto` for fully autonomous operation with no prompts, built for CI/CD pipelines:
-
-```bash
-kilo run --auto "run tests and fix any failures"
-```
-
-`--auto` auto-approves permission prompts unless a rule explicitly denies the action. Only use it in trusted environments.
-
-### Documentation
-
-For configuration and everything else, [head over to the docs](https://kilo.ai/docs).
-
-### Contributing
-
-Contributions are welcome from developers, writers, and everyone in between. Start with the [Contributing Guide](/CONTRIBUTING.md) for environment setup, coding standards, and how to open a pull request. See [RELEASING.md](RELEASING.md) for the VS Code extension and CLI release process, and [packages/kilo-jetbrains/RELEASING.md](packages/kilo-jetbrains/RELEASING.md) for the JetBrains plugin.
-
-Please review our [Code of Conduct](/CODE_OF_CONDUCT.md) before getting involved.
-
-### License
-
-MIT. You're free to use, modify, and distribute this code, including commercially, as long as you keep the attribution and license notices. See [License](/LICENSE).
-
-### FAQ
-
-<details>
-<summary>Where did Kilo CLI come from?</summary>
-
-Kilo CLI is a fork of [OpenCode](https://github.com/anomalyco/opencode), enhanced to work within the Kilo agentic engineering platform.
-
-</details>
-
----
-
-**Join the community** [Discord](https://kilo.ai/discord) | [X](https://x.com/kilocode) | [Reddit](https://www.reddit.com/r/kilocode/)
+MIT. Copyright (c) Kilo Code et les contributeurs d'OpenCode. Voir [LICENSE](LICENSE).

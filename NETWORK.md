@@ -4,7 +4,7 @@ Base : Kilo Code `v7.8.18` (voir [UPSTREAM.md](UPSTREAM.md)). Inventaire établi
 
 **Objectif à l'exécution :** le seul hôte distant joignable est `albert.api.etalab.gouv.fr` (HTTPS, URL de base `https://albert.api.etalab.gouv.fr/v1`). La boucle locale (`127.0.0.1`, `::1`, `localhost`) reste ouverte pour la liaison extension ↔ CLI (`kilo serve`) et pour les serveurs MCP locaux.
 
-**Statut :** inventaire initial (avant correctifs). La colonne « Décision » donne le traitement prévu. Ce fichier sera mis à jour à chaque correctif, puis vérifié par une recherche des hôtes dans le bundle final.
+**Statut :** inventaire établi avant les correctifs ; les décisions sont toutes appliquées sur la branche `albert_code`. Les sections [Mise en œuvre](#mise-en-œuvre) et [Vérifications](#vérifications) disent où chaque coupure est faite et comment elle a été vérifiée.
 
 ## Légende des décisions
 
@@ -34,7 +34,7 @@ Base : Kilo Code `v7.8.18` (voir [UPSTREAM.md](UPSTREAM.md)). Inventaire établi
 | Authentification OAuth MCP (`openExternal`) | `services/mcp-auth/service.ts` | Serveur MCP distant | Navigateur de l'utilisateur | COUPÉ (MCP distant retiré) |
 | PR GitHub (`gh` CLI, `git remote add https://github.com/...`) | `agent-manager/WorktreeManager.ts:1566-1583` | « Checkout PR » dans l'Agent Manager | Appels `gh` / `git fetch` | COUPÉ (sous-processus, voir Limites) |
 | `vscode.env.openExternal` (liens kilo.ai, docs, PR) | `browser-links.ts`, `vscode-host.ts`, `DiffViewerProvider.ts`, `pr-status-bridge.ts` | Clic utilisateur | Ouvre le navigateur système (hors processus) | Liens Kilo retirés ; autres liens conservés seulement sur clic explicite |
-| Migration Roo / Kilo legacy | `legacy-migration/`, `roo-import/` | Premier lancement | Lecture locale | À vérifier : local seulement |
+| Migration Roo / Kilo legacy | `legacy-migration/`, `roo-import/` | Premier lancement | Lecture de fichiers locaux | LOCAL (aucun appel réseau dans le code) |
 
 ## 2. Webview (`packages/kilo-vscode/webview-ui`, `packages/kilo-ui`, `packages/ui`)
 
@@ -45,7 +45,7 @@ Base : Kilo Code `v7.8.18` (voir [UPSTREAM.md](UPSTREAM.md)). Inventaire établi
 | `frame-src` paramétrable | `src/webview-html-utils.ts:40` | Onglet navigateur intégré | URL arbitraire | COUPÉ (pas de frame distante) |
 | Liens `kilo.ai`, `app.kilo.ai`, `blog.kilo.ai`, `github.com/Kilo-Org` | `webview-ui/src/components/profile/ProfileView.tsx`, réglages, i18n | Clic | Navigateur système | Retirés / rebrandés |
 | Catalogue de fournisseurs (`opencode.ai`, logos) | `webview-ui/src/components/settings/provider-catalog.ts` | Réglages fournisseurs | — | COUPÉ |
-| Sandbox réglages (`api.github.com`) | `webview-ui/src/components/settings/SandboxingTab.tsx` | Lien de doc | — | À vérifier |
+| Sandbox réglages (`api.github.com`) | `webview-ui/src/components/settings/SandboxingTab.tsx` | Exemple d'hôte autorisé affiché dans l'interface | — | Texte seulement, aucune requête |
 
 ## 3. CLI embarquée (`packages/opencode/src`, `packages/core/src`, paquets `kilo-*`)
 
@@ -144,7 +144,7 @@ Le build de `kilo serve` est un exécutable Bun. Clients HTTP observés : `globa
 | Flux / hôte | Fichier | Déclencheur | Données envoyées | Décision |
 |---|---|---|---|---|
 | Embeddings Voyage (`api.voyageai.com`), Ollama, OpenAI-compatible, passerelle Kilo | `kilo-indexing/src/indexing/embedders/*`, `kilo-gateway/src/api/embedding-models.ts` | Indexation (plugin par défaut) | Code source découpé | COUPÉ (`KILO_DISABLE_CODEBASE_INDEXING`) — réactivable plus tard avec `/v1/embeddings` d'Albert si LanceDB est embarqué au build |
-| `kilo-memory` | `packages/kilo-memory` | Mémoire de session | — | À vérifier (aucun `fetch` trouvé) |
+| `kilo-memory` | `packages/kilo-memory` | Mémoire de projet | — | LOCAL (aucun client réseau dans le paquet) |
 
 ### 3.9 Divers
 
@@ -154,11 +154,50 @@ Le build de `kilo serve` est un exécutable Bun. Clients HTTP observés : `globa
 | Bonjour/mDNS (`bonjour-service`) | `opencode/src` (serveur) | `--mdns` | Annonce sur le réseau local | COUPÉ |
 | Proxy système (`HTTP(S)_PROXY`) transmis à la CLI | `server-manager.ts:320-381` | Réglage `http.proxy` de VS Code | — | Conservé ; le verrou s'applique avant le proxy (l'hôte final est vérifié) |
 
-## Verrou prévu (résumé)
+## Mise en œuvre
 
-- **CLI :** module chargé en premier dans l'exécutable ; il enveloppe `globalThis.fetch`, `WebSocket`, `node:http`/`https`, `node:net`/`tls`, `node:dns`, `Bun.connect`. Tout hôte hors liste (boucle locale + hôte Albert en HTTPS) est refusé et journalisé.
-- **Hôte de l'extension :** le même contrôle, appliqué uniquement au bundle de l'extension (alias esbuild), car l'hôte d'extensions de VS Code est partagé avec d'autres extensions.
-- **Webview :** CSP stricte, sans `https:` générique.
+| Mécanisme | Où | Couvre |
+|---|---|---|
+| Liste d'autorisation unique | `packages/albert/src/policy.ts` | Boucle locale ; `albert.api.etalab.gouv.fr` en HTTPS sur 443 uniquement. L'URL d'Albert (`ALBERT_BASE_URL`, réglage `albertCode.apiBaseUrl`) n'accepte que cet hôte ou la boucle locale |
+| Verrou CLI (processus entier) | `packages/opencode/src/albert/boot.ts`, premier import de `src/index.ts` et des workers ; `packages/albert/src/install.ts` | `fetch` (avec suivi des redirections pas à pas), `WebSocket`, `EventSource`, `node:http`/`https`, `net` (`connect`, `Socket#connect`), `tls`, `dns` (`lookup` et `resolve*`), `dgram`, `Bun.connect`, `Bun.dns.lookup`. `Bun.fetch` n'est pas modifiable par le runtime : un test statique interdit son usage |
+| Verrou hôte de l'extension (bundle seulement) | `packages/kilo-vscode/script/albert-esbuild.js`, `packages/albert/src/scoped/*` | Mêmes clients, substitués au build (l'hôte d'extensions est partagé avec les autres extensions) |
+| Journalisation | `packages/albert/src/guard.ts` | Chaque refus : `[albert-guard] blocked <type> <cible>` sur la sortie d'erreur et, si `ALBERT_GUARD_LOG` est défini, une ligne JSON (origine et chemin, jamais la query string) |
+| Environnement imposé | `packages/albert/src/env.ts` (appliqué par l'extension au lancement et par la CLI à elle-même) | `KILO_DISABLE_SESSION_INGEST`, `_SHARE`, `_MODELS_FETCH`, `_AUTOUPDATE`, `_LSP_DOWNLOAD`, `_DEFAULT_PLUGINS`, `_CODEBASE_INDEXING`, `KILO_TELEMETRY_LEVEL=off`… ; suppression de `KILO_API_KEY`, `KILO_SESSION_INGEST_URL`, `KILO_MODELS_URL`, `OTEL_EXPORTER_OTLP_*`, `KILO_MACHINE_ID`… |
+| Configuration imposée | `packages/opencode/src/albert/config.ts` (appliquée après fusion de toutes les sources) | Albert seul fournisseur ; partage, mises à jour, contrôle à distance, recherche web désactivés ; MCP distants et instructions par URL retirés ; outils réseau retirés du registre ; `bash` demande confirmation par défaut |
+| Catalogue local | `packages/opencode/src/albert/catalog.ts`, `models.ts`, `script/generate.ts` | Le catalogue embarqué ne déclare qu'Albert, sans modèle ; les modèles viennent de `GET /v1/models`, mis en cache dans `~/.cache/albert-code/models.json` |
+| Aucune installation à l'exécution | `packages/core/src/npm.ts` | Plugins npm, SDK de fournisseurs, LSP, formateurs, LanceDB |
+| ripgrep embarqué | `packages/core/src/ripgrep/binary.ts`, `script/albert-package.ts` | Plus de téléchargement depuis GitHub à l'exécution |
+| Réglages verrouillés | `packages/kilo-vscode/src/albert/settings.ts` | Navigateur / Playwright, autocomplétion, bouton d'indexation |
+| CSP webview | `packages/kilo-vscode/src/webview-html-utils.ts` | `img-src` limité aux ressources de l'extension, `data:` et `blob:` ; `frame-src` limité à la boucle locale ; `connect-src` limité à la CLI locale |
+
+## Vérifications
+
+| Vérification | Résultat |
+|---|---|
+| Test réseau E2E (`packages/albert/e2e/run.sh`), CLI réelle dans un espace réseau isolé, faux Albert | Démarrage, découverte des modèles, session, appel d'outil `write`, titre, message de commit et commit, redémarrage : **0 requête DNS, 0 paquet sortant, 0 refus du verrou** |
+| Test négatif (`negative.sh`) | La fuite volontaire (`leak.example.org`) est détectée : 2 requêtes DNS, 11 paquets attribués à cet hôte |
+| Test VS Code (`run.sh --vscode`), VSIX sur profil vierge dans l'espace isolé | Activation, lancement de la CLI, découverte des modèles, aucun refus du verrou. Seuls `redirector.gvt1.com` (mises à jour de composants Chromium) et `main.vscode-cdn.net` apparaissent ; un VS Code vierge sans l'extension les contacte aussi |
+| Session réelle contre Albert, CLI tracée par `strace -e connect` | Fournisseur unique `albert`, 7 modèles de chat lus sur `/v1/models`, outils `write` et `bash` (confirmation demandée), titre et message de commit par Albert. Une seule connexion distante : `142.44.61.228:443` (`albert.api.etalab.gouv.fr`) ; le reste est le résolveur local (`127.0.0.53`, `nscd`) |
+
+### Flux trouvés pendant les tests et corrigés
+
+| Flux | Trouvé par | Correction |
+|---|---|---|
+| `ai-gateway.kilo.ai/api/v1/embedding-models` depuis l'hôte de l'extension | Test VS Code (refusé et journalisé par le verrou de l'extension) | Catalogue vide renvoyé sans requête |
+| Échec d'activation de l'extension (objets de configuration figés de VS Code) | Test VS Code | Réglages verrouillés par dérivation au lieu d'un `Proxy` |
+
+### Recherche des hôtes dans le VSIX (`script/albert-scan.ts`)
+
+Une chaîne présente dans le bundle n'est pas un flux. La recherche sert à vérifier qu'aucun hôte retiré avec son code ne subsiste, et à justifier les autres :
+
+| Hôte | Hôte ext. | Webview | CLI | Justification |
+|---|---|---|---|---|
+| `albert.api.etalab.gouv.fr` | 2 | 0 | 6 | Seul flux distant autorisé |
+| `us.i.posthog.com`, `ingest.kilosessions.ai`, `supermassive-black-hole.kiloapps.io` | 0 | 0 | 0 | Code supprimé ; le scan échoue s'ils réapparaissent |
+| `models.dev`, `opncd.ai`, `mcp.exa.ai`, `search.parallel.ai`, `api.githubcopilot.com`, `chatgpt.com`, `download-cdn.jetbrains.com`, `api.releases.hashicorp.com`, `formulae.brew.sh` | 0 | 0 | 0 | Absents du bundle |
+| `api.kilo.ai`, `app.kilo.ai`, `ai-gateway.kilo.ai`, `kiloapps.io` | 1–2 | 0–4 | 0–2 | Constantes de `kilo-gateway` et liens (code inatteignable : passerelle, compte et marketplace coupés ; toute requête serait refusée par le verrou) |
+| `registry.npmjs.org`, `raw.githubusercontent.com`, `api.github.com`, `openrouter.ai`, `api.openai.com`, `api.anthropic.com`, `api.voyageai.com` | 0 | 0–171 | 1–6 | CLI : défauts de clients retirés (npm, mises à jour, fournisseurs tiers, embeddings) dont les points d'entrée sont coupés. Webview : textes de documentation et grammaires de coloration, sans requête (CSP) |
+| `opencode.ai`, `kilo.ai` (webview) | 0 | 29–312 | 0–5 | Liens de documentation et schémas JSON dans les textes, sans requête (CSP) |
 
 ## Limites
 
