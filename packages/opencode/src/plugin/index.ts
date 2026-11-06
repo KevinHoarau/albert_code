@@ -29,6 +29,8 @@ import { errorMessage } from "@/util/error"
 import { PluginLoader } from "./loader"
 import { parsePluginSpecifier, readPluginId, readV1Plugin, resolvePluginId } from "./shared"
 import { KiloAuthPlugin } from "@kilocode/kilo-gateway" // kilocode_change
+import { AlbertPlugin } from "@/albert/plugin" // albert_change
+import * as Albert from "@albert-code/guard/env" // albert_change
 import { AtomicChatPlugin } from "@kilocode/plugin-atomic-chat" // kilocode_change
 import { AnacondaDesktopPlugin } from "@/kilocode/anaconda-desktop/provider" // kilocode_change
 import { registerAdapter } from "@/control-plane/adapters"
@@ -177,7 +179,12 @@ const layer = Layer.effect(
           $: typeof Bun === "undefined" ? undefined : Bun.$,
         }
 
-        for (const plugin of flags.disableDefaultPlugins ? [] : internalPlugins(flags)) {
+        // albert_change - Albert is the only provider plugin; Kilo, Codex, Copilot... are never loaded
+        for (const plugin of Albert.active()
+          ? [AlbertPlugin as PluginInstance]
+          : flags.disableDefaultPlugins
+            ? []
+            : internalPlugins(flags)) {
           const init = yield* Effect.tryPromise({
             try: () => plugin(input),
             catch: errorMessage,

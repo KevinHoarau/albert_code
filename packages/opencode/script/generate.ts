@@ -11,7 +11,12 @@ process.chdir(dir)
 const modelsUrl = process.env.KILO_MODELS_URL || "https://models.dev"
 // kilocode_change start
 const cacheFile = path.resolve(dir, "node_modules/.cache/models-dev-api.json")
+// albert_change start - the embedded snapshot only declares Albert; models come from /v1/models
+const { provider } = await import("../src/albert/catalog")
+const albert = JSON.stringify({ albert: provider() })
+// albert_change end
 const raw = await (async () => {
+  if (!process.env.MODELS_DEV_API_JSON) return albert // albert_change
   if (process.env.MODELS_DEV_API_JSON) {
     return await Bun.file(process.env.MODELS_DEV_API_JSON).text()
   }
@@ -45,6 +50,6 @@ const raw = await (async () => {
     throw err
   }
 })()
-export const modelsData = JSON.stringify(parseModelsSnapshot(raw).data)
+export const modelsData = raw === albert ? albert : JSON.stringify(parseModelsSnapshot(raw).data) // albert_change - no model to validate
 // kilocode_change end
 console.log("Loaded models.dev snapshot")
