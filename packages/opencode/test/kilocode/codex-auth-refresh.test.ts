@@ -113,7 +113,7 @@ async function race(input: { reuse: "early" | "late"; delay: number; lock?: Lock
   })
 
   try {
-    const data = path.join(dir, "share", "kilo")
+    const data = path.join(dir, "share", "albert-code") // albert_change - data dir renamed
     const start = path.join(dir, "start")
     const first = path.join(dir, "first")
     const second = path.join(dir, "second")
