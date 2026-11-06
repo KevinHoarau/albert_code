@@ -7,6 +7,8 @@ import * as vscode from "vscode"
 import { resolveLocalBwrapEnv, resolveTreeSitterEnv } from "./cli-resources"
 import { t } from "./i18n"
 import { ensureServerCwd, scanServerPort } from "./server-utils"
+import { child } from "@albert-code/guard/env" // albert_change
+import * as Albert from "../../albert/key" // albert_change
 
 export interface ServerInstance {
   port: number
@@ -96,6 +98,7 @@ export class ServerManager {
     console.log("[Kilo New] ServerManager: 📄 CLI mode (octal):", (stat.mode & 0o777).toString(8))
 
     const extraEnv = await this.env?.()
+    const albert = await Albert.vars(this.context) // albert_change
     return new Promise((resolve, reject) => {
       console.log("[Kilo New] ServerManager: 🎬 Spawning CLI process:", cliPath, ["serve", "--port", "0"])
       const cfg = vscode.workspace.getConfiguration("kilo-code.new")
@@ -128,7 +131,8 @@ export class ServerManager {
       const proxyStrictSSL = vscode.workspace.getConfiguration("http").get<boolean>("proxyStrictSSL", true)
       const serverProcess = spawn(cliPath, ["serve", "--port", "0"], {
         cwd: spawnCwd,
-        env: {
+        // albert_change - Kilo endpoints and credentials dropped, kill switches forced, Albert endpoint added
+        env: child({
           NODE_USE_SYSTEM_CA: "1",
           ...(extraCaCerts && { NODE_EXTRA_CA_CERTS: extraCaCerts }),
           ...(!proxyStrictSSL && { NODE_TLS_REJECT_UNAUTHORIZED: "0" }),
@@ -168,7 +172,8 @@ export class ServerManager {
           ...bwrapEnv,
           ...extraEnv,
           KILO_EXPERIMENTAL_CLAUDE_MIGRATION: claudeMigration,
-        },
+          ...albert,
+        }),
         stdio: ["ignore", "pipe", "pipe"],
         detached: true,
       })
