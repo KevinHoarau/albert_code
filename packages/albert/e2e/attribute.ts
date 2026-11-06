@@ -11,7 +11,7 @@ const read = (file: string) =>
   fs.existsSync(path.join(root, file)) ? fs.readFileSync(path.join(root, file), "utf8").split("\n").filter(Boolean) : []
 
 const core = new Set(
-  mode === "vscode"
+  mode.startsWith("vscode")
     ? fs
         .readFileSync(path.join(import.meta.dir, "vscode-core-hosts.txt"), "utf8")
         .split("\n")
@@ -32,7 +32,10 @@ const packets = capture.map((line) => {
 
 const names = [...new Set(queries.map((query) => query.name))]
 const counted = read("packets").at(0) ?? "0"
-const unexplained = [
+// With another extension installed (vscode-coexist), DNS and packets cannot be
+// attributed: only Albert Code's own guard refusals count.
+const coexist = mode === "vscode-coexist"
+const unexplained = coexist ? read("guard.log").map((line) => `guard ${line}`) : [
   ...(mode === "cli" && counted !== "0" ? [`${counted} outbound packets`] : []),
   ...names.filter((name) => !core.has(name)).map((name) => `dns ${name}`),
   ...[...new Set(packets)].filter((name) => !core.has(name)).map((name) => `packets to ${name}`),
@@ -42,7 +45,8 @@ const unexplained = [
 console.log(`dns names          : ${names.join(", ") || "none"}`)
 const counts = packets.reduce((map, name) => map.set(name, (map.get(name) ?? 0) + 1), new Map<string, number>())
 console.log(`captured packets   : ${[...counts].map(([name, n]) => `${name}=${n}`).join(", ") || "none"}`)
-if (mode === "vscode") console.log(`tolerated (VS Code core): ${[...core].join(", ")}`)
+if (mode.startsWith("vscode")) console.log(`tolerated (VS Code core): ${[...core].join(", ")}`)
+if (coexist) console.log("coexistence mode: DNS and packets are reported, not attributed")
 if (unexplained.length) {
   console.log("not explained:")
   for (const item of unexplained) console.log(`  ${item}`)

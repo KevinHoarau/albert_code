@@ -6,7 +6,7 @@ const fs = require("node:fs")
 const vscode = require("vscode")
 
 exports.run = async () => {
-  await vscode.commands.executeCommand("kilo-code.SidebarProvider.focus")
+  await vscode.commands.executeCommand("albert-code.SidebarProvider.focus")
   const done = process.env.E2E_DONE
   const settings = process.env.E2E_SETTINGS
   const end = Date.now() + 150_000
@@ -14,7 +14,7 @@ exports.run = async () => {
   while (Date.now() < end && !(done && fs.existsSync(done))) {
     if (!opened && settings && fs.existsSync(settings)) {
       opened = true
-      await vscode.commands.executeCommand("kilo-code.new.settingsButtonClicked")
+      await vscode.commands.executeCommand("albert-code.settingsButtonClicked")
     }
     await new Promise((r) => setTimeout(r, 500))
   }

@@ -3,6 +3,10 @@
 #
 #   run.sh [--leak] <path to the kilo binary>
 #   run.sh --vscode <path to the VSIX>     (needs a display: DISPLAY or xvfb-run)
+#   E2E_ALSO=<extension dir> run.sh --vscode <vsix>
+#       also installs another extension (e.g. Kilo Code) in the same profile to
+#       check that both coexist; its own traffic cannot be told apart, so only
+#       the Albert Code guard refusals decide the network verdict in that mode.
 #
 # Runs scenario.ts inside a new user, network and mount namespace where:
 # - only loopback works; every other packet goes to a dummy interface that
@@ -34,6 +38,7 @@ if [ "$mode" = "vscode" ]; then
   ud="$(mktemp -d /tmp/aud.XXXXXX)"
   # Installing a local VSIX needs no network; it happens before isolation.
   "$code" --user-data-dir "$ud" --extensions-dir "$root/ext" --install-extension "$bin" > /dev/null
+  if [ -n "${E2E_ALSO:-}" ]; then mode=vscode-coexist; fi
   # The `code` launcher closes the window when it exits: start Electron itself.
   electron="$(dirname "$(readlink -f "$code")")/../code"
 fi
@@ -46,7 +51,7 @@ fi
 
 set +e
 "${wrap[@]}" env -i PATH="$(dirname "$bun"):/usr/sbin:/usr/bin:/sbin:/bin" TMPDIR="$root" \
-  ROOT="$root" HERE="$here" BIN="$bin" LEAK="$leak" SCRIPT="$script" CODE_BIN="${electron:-}" E2E_UD="${ud:-}" \
+  ROOT="$root" HERE="$here" BIN="$bin" LEAK="$leak" SCRIPT="$script" CODE_BIN="${electron:-}" E2E_UD="${ud:-}" E2E_ALSO="${E2E_ALSO:-}" \
   DISPLAY="${DISPLAY:-}" XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthority}" bash -euo pipefail -c '
   ip link set lo up
   ip link add sink type dummy
@@ -82,7 +87,7 @@ set +e
   nft reset counters table inet watch > /dev/null
   status=0
   KILO_BIN="$BIN" E2E_ROOT="$ROOT" E2E_LEAK="$LEAK" ALBERT_GUARD_LOG="$ROOT/guard.log" \
-    E2E_UD="$E2E_UD" bun "$SCRIPT" || status=$?
+    E2E_UD="$E2E_UD" E2E_ALSO="$E2E_ALSO" bun "$SCRIPT" || status=$?
 
   sleep 1
   kill $dump 2>/dev/null || true

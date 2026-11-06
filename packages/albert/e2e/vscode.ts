@@ -75,6 +75,7 @@ const proc = Bun.spawn(
     "--disable-gpu",
     "--skip-release-notes",
     `--extensionDevelopmentPath=${path.join(ext, installed!)}`,
+    ...(process.env.E2E_ALSO ? [`--extensionDevelopmentPath=${process.env.E2E_ALSO}`] : []),
     `--extensionTestsPath=${path.join(import.meta.dir, "vscode-runner.cjs")}`,
     work,
   ],
@@ -125,6 +126,21 @@ const logs = [...new Bun.Glob("**/*.log").scanSync({ cwd: path.join(ud, "logs") 
 const host = logs.filter((file) => /exthost/i.test(file)).map((file) => fs.readFileSync(file, "utf8")).join("\n")
 check(/albert-code/.test(host), "the extension host log mentions albert-code")
 check(!/Activating extension 'albert-code.albert-code' failed/.test(host), "the extension activated without error")
+// Duplicate identifiers between Albert Code and Kilo Code (commands, views,
+// panel serializers). Both agent managers intercepting VS Code's own panel
+// commands (workbench.action.*) is a known, gracefully degraded interaction.
+const all = logs.map((file) => fs.readFileSync(file, "utf8")).join("\n")
+const twice = all
+  .split("\n")
+  .filter((line) => /already (exists|registered)|multiple views with same id/i.test(line))
+  .filter((line) => !line.includes("workbench.action."))
+check(twice.length === 0, `no command, view or panel is registered twice${twice.length ? `: ${twice.join(" | ")}` : ""}`)
+if (process.env.E2E_ALSO) {
+  const manifest = JSON.parse(fs.readFileSync(path.join(process.env.E2E_ALSO, "package.json"), "utf8"))
+  const id = `${manifest.publisher}.${manifest.name}`
+  check(host.includes(`_doActivateExtension ${id}`), `${id} activated next to Albert Code`)
+  check(!host.includes(`Activating extension '${id}' failed`), `${id} activated without error`)
+}
 
 fs.writeFileSync(done, "")
 await Promise.race([proc.exited, Bun.sleep(30_000)])
