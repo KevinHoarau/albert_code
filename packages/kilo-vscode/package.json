@@ -791,7 +791,7 @@
         "albertCode.apiBaseUrl": {
           "type": "string",
           "default": "https://albert.api.etalab.gouv.fr/v1",
-          "markdownDescription": "Base URL of the Albert API. Only `https://albert.api.etalab.gouv.fr` (or a loopback address, for tests) is accepted. The API key is set with the **Albert Code: Set Albert API Key** command and stored in VS Code SecretStorage."
+          "markdownDescription": "Base URL of the Albert API. Only `https://albert.api.etalab.gouv.fr` (or a loopback address, for tests) is accepted. The API key is set in **Albert Code → Settings → Albert**, or with the **Albert Code: Set Albert API Key** command, and stored in VS Code SecretStorage."
         },
         "kilo-code.new.language": {
           "type": "string",
@@ -899,16 +899,6 @@
             "فارسی"
           ]
         },
-        "kilo-code.new.model.providerID": {
-          "type": "string",
-          "default": "albert",
-          "description": "Default model provider ID for new sessions"
-        },
-        "kilo-code.new.model.modelID": {
-          "type": "string",
-          "default": "",
-          "description": "Default model ID for new sessions. Empty: the first chat model returned by Albert /v1/models."
-        },
         "kilo-code.new.agentManager.autoBranchNaming": {
           "type": "boolean",
           "default": true,
@@ -967,12 +957,6 @@
           "type": "boolean",
           "default": false,
           "description": "Start Albert Code with the main auto-approve toggle enabled. When enabled, permission prompts are approved automatically. Sandbox escalation prompts are always excluded."
-        },
-        "kilo-code.new.maxCost": {
-          "type": "number",
-          "default": 0,
-          "minimum": 0,
-          "description": "Show a non-blocking alert when a session exceeds this USD amount. Use whole dollars; set to 0 to disable."
         },
         "kilo-code.new.fontSize": {
           "type": "number",

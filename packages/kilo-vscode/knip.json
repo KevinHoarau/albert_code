@@ -36,6 +36,9 @@
   "ignore": [
     "src/services/autocomplete/index.ts",
     "webview-ui/src/components/settings/AutocompleteTab.tsx",
-    "webview-ui/src/components/settings/BrowserTab.tsx"
+    "webview-ui/src/components/settings/BrowserTab.tsx",
+    "webview-ui/src/components/speech-to-text/model-selector.ts",
+    "webview-ui/src/components/settings/autocomplete-model-selector.ts",
+    "webview-ui/src/context/image-models.tsx"
   ]
 }

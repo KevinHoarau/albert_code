@@ -76,10 +76,8 @@ const AgentBehaviourTab: Component<Props> = (props) => {
   const [activeSubtab, setActiveSubtab] = createSignal<SubtabId>("agents")
   const [stale, setStale] = createSignal<Set<SubtabId>>(new Set())
   const [newSkillPath, setNewSkillPath] = createSignal("")
-  const [newSkillUrl, setNewSkillUrl] = createSignal("")
   const [newInstruction, setNewInstruction] = createSignal("")
   const [claudeCompat, setClaudeCompat] = createSignal(false)
-  const browse = () => vscode.postMessage({ type: "openMarketplacePanel" })
 
   const unsubscribeInvalidation = vscode.onMessage((message: ExtensionMessage) => {
     if (message.type !== "agentBehaviourInvalidated") return
@@ -218,7 +216,6 @@ const AgentBehaviourTab: Component<Props> = (props) => {
   }
 
   const skillPaths = () => config().skills?.paths ?? []
-  const skillUrls = () => config().skills?.urls ?? []
 
   const addSkillPath = () => {
     const value = newSkillPath().trim()
@@ -237,25 +234,6 @@ const AgentBehaviourTab: Component<Props> = (props) => {
     const current = [...skillPaths()]
     current.splice(index, 1)
     updateConfig({ skills: { ...config().skills, paths: current } })
-  }
-
-  const addSkillUrl = () => {
-    const value = newSkillUrl().trim()
-    if (!value) {
-      return
-    }
-    const current = [...skillUrls()]
-    if (!current.includes(value)) {
-      current.push(value)
-      updateConfig({ skills: { ...config().skills, urls: current } })
-    }
-    setNewSkillUrl("")
-  }
-
-  const removeSkillUrl = (index: number) => {
-    const current = [...skillUrls()]
-    current.splice(index, 1)
-    updateConfig({ skills: { ...config().skills, urls: current } })
   }
 
   const confirmRemoveSkill = (skill: SkillInfo) => {
@@ -441,9 +419,6 @@ const AgentBehaviourTab: Component<Props> = (props) => {
           <div style={{ display: "flex", gap: "8px" }}>
             <Button variant="ghost" size="small" onClick={triggerImport}>
               {language.t("settings.agentBehaviour.importMode")}
-            </Button>
-            <Button variant="ghost" size="small" onClick={browse}>
-              {language.t("settings.agentBehaviour.mcpBrowseMarketplace")}
             </Button>
             <Button variant="secondary" size="small" onClick={() => setAgentView("create")}>
               {language.t("settings.agentBehaviour.createMode")}
@@ -724,18 +699,7 @@ const AgentBehaviourTab: Component<Props> = (props) => {
 
     return (
       <div>
-        <div
-          style={{
-            display: "flex",
-            "align-items": "center",
-            "justify-content": "flex-end",
-            "margin-bottom": "8px",
-          }}
-        >
-          <Button variant="secondary" size="small" onClick={browse}>
-            {language.t("settings.agentBehaviour.mcpBrowseMarketplace")}
-          </Button>
-        </div>
+        {/* albert_change - marketplace removed */}
         <Show
           when={mcpEntries().length > 0}
           fallback={
@@ -1016,18 +980,7 @@ const AgentBehaviourTab: Component<Props> = (props) => {
 
   const renderSkillsSubtab = () => (
     <div>
-      <div
-        style={{
-          display: "flex",
-          "align-items": "center",
-          "justify-content": "flex-end",
-          "margin-bottom": "8px",
-        }}
-      >
-        <Button variant="secondary" size="small" onClick={browse}>
-          {language.t("settings.agentBehaviour.mcpBrowseMarketplace")}
-        </Button>
-      </div>
+      {/* albert_change - marketplace removed */}
       {/* Discovered skills */}
       <h4 style={{ "margin-top": "0", "margin-bottom": "8px" }}>
         {language.t("settings.agentBehaviour.discoveredSkills")}
@@ -1133,62 +1086,7 @@ const AgentBehaviourTab: Component<Props> = (props) => {
         </For>
       </Card>
 
-      {/* Skill URLs */}
-      <h4 style={{ "margin-top": "0", "margin-bottom": "8px" }}>{language.t("settings.agentBehaviour.skillUrls")}</h4>
-      <Card>
-        <div
-          style={{
-            display: "flex",
-            gap: "8px",
-            "align-items": "center",
-            padding: "8px 0",
-            "border-bottom": skillUrls().length > 0 ? "1px solid var(--border-weak-base)" : "none",
-          }}
-        >
-          <div style={{ flex: 1, "min-width": 0 }}>
-            <TextField
-              value={newSkillUrl()}
-              placeholder="e.g. https://example.com/skills"
-              onChange={(val) => setNewSkillUrl(val)}
-              onKeyDown={(e: KeyboardEvent) => {
-                if (e.key === "Enter") addSkillUrl()
-              }}
-            />
-          </div>
-          <Button variant="secondary" onClick={addSkillUrl}>
-            {language.t("common.add")}
-          </Button>
-        </div>
-        <For each={skillUrls()}>
-          {(url, index) => (
-            <div
-              style={{
-                display: "flex",
-                "align-items": "center",
-                "justify-content": "space-between",
-                padding: "6px 0",
-                "border-bottom": index() < skillUrls().length - 1 ? "1px solid var(--border-weak-base)" : "none",
-              }}
-            >
-              <Tooltip value={url} class="settings-skills-row-trigger" contentClass="settings-skills-tooltip-content">
-                <span
-                  style={{
-                    width: "100%",
-                    "font-family": "var(--vscode-editor-font-family, monospace)",
-                    "font-size": "var(--kilo-font-size-12)",
-                    overflow: "hidden",
-                    "text-overflow": "ellipsis",
-                    "white-space": "nowrap",
-                  }}
-                >
-                  {url}
-                </span>
-              </Tooltip>
-              <IconButton size="small" variant="ghost" icon="close" onClick={() => removeSkillUrl(index())} />
-            </div>
-          )}
-        </For>
-      </Card>
+      {/* albert_change - remote skill URLs removed (Albert Code only reads local skills) */}
     </div>
   )
 

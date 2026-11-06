@@ -1,43 +1,20 @@
 import { Component, For, Show, createMemo } from "solid-js"
 import { Card } from "@kilocode/kilo-ui/card"
-import { Select } from "@kilocode/kilo-ui/select"
-import { Switch } from "@kilocode/kilo-ui/switch"
-import { TextField } from "@kilocode/kilo-ui/text-field"
-import { Tooltip } from "@kilocode/kilo-ui/tooltip"
 import { useConfig } from "../../context/config"
 import { useLanguage } from "../../context/language"
 import { useProvider } from "../../context/provider"
 import { useSession } from "../../context/session"
-import { useSpeechToTextModels } from "../../context/speech-to-text-models"
 import { parseModelString } from "../../../../src/shared/provider-model"
 import { ModelSelectorBase } from "../shared/ModelSelector"
 import { ThinkingSelectorBase } from "../shared/ThinkingSelector"
 import SettingsRow from "./SettingsRow"
-import { DEFAULT_SPEECH_TO_TEXT_MODEL } from "../../../../src/speech-to-text/models"
-import {
-  hasCustomSpeechToTextSource,
-  hasSpeechToTextAccess,
-  selectedSpeechToTextModel,
-} from "../speech-to-text/availability"
-import { speechToTextModelOptions } from "../speech-to-text/model-selector"
-import { AUTOCOMPLETE_SELECTOR_MODELS, getAutocompleteSelection } from "./autocomplete-model-selector"
 import { preserveVariant } from "../../context/session-variant-store"
 
 const ModelsTab: Component = () => {
-  const { config, settings, updateConfig, updateSetting, features } = useConfig()
+  const { config, updateConfig } = useConfig() // albert_change
   const language = useLanguage()
   const provider = useProvider()
   const session = useSession()
-  const speechModels = useSpeechToTextModels()
-
-  const autocompleteProvider = () => {
-    const v = settings()["autocomplete.provider"]
-    return typeof v === "string" ? v : undefined
-  }
-  const autocompleteModel = () => {
-    const v = settings()["autocomplete.model"]
-    return typeof v === "string" ? v : undefined
-  }
 
   function handleModelSelect(configKey: "model" | "small_model") {
     return (providerID: string, modelID: string) => {
@@ -50,15 +27,6 @@ const ModelsTab: Component = () => {
   }
 
   const subagentModel = createMemo(() => parseModelString(config().subagent_model ?? undefined))
-  const speechModel = createMemo(() => selectedSpeechToTextModel(config(), speechModels.models()))
-  const speechOptions = createMemo(() => speechToTextModelOptions(speechModels.models()))
-  const speechOption = createMemo(() => speechOptions().find((item) => item.value === speechModel()))
-  const kiloReady = createMemo(() => hasSpeechToTextAccess(config(), provider.authStates()))
-  const customSpeech = createMemo(() => hasCustomSpeechToTextSource(config()))
-
-  function updateSpeech(patch: Record<string, string | null>) {
-    updateConfig({ experimental: { ...config().experimental, ...patch } })
-  }
   const variantKey = createMemo(() => config().subagent_model ?? undefined)
   const subagentVariants = createMemo(() => Object.keys(provider.findModel(subagentModel())?.variants ?? {}))
   const subagentVariant = createMemo(() => {
@@ -113,18 +81,6 @@ const ModelsTab: Component = () => {
         },
       })
     }
-  }
-
-  function handleAutocompleteModelSelect(providerID: string, modelID: string) {
-    if (!providerID || !modelID) {
-      // Clearing both keys reverts to the resolved server-side default. Users
-      // who pick "Not set" follow future default changes automatically.
-      updateSetting("autocomplete.provider", null)
-      updateSetting("autocomplete.model", null)
-      return
-    }
-    updateSetting("autocomplete.provider", providerID)
-    updateSetting("autocomplete.model", modelID)
   }
 
   return (
@@ -190,6 +146,7 @@ const ModelsTab: Component = () => {
         <SettingsRow
           title={language.t("settings.context.compactionModel.title")}
           description={language.t("settings.context.compactionModel.description")}
+          last
         >
           <ModelSelectorBase
             value={parseModelString(config().agent?.compaction?.model ?? undefined)}
@@ -205,104 +162,7 @@ const ModelsTab: Component = () => {
             description={language.t("settings.context.compactionModel.description")}
           />
         </SettingsRow>
-        <SettingsRow
-          title={language.t("settings.autocomplete.model.title")}
-          description={language.t("settings.autocomplete.model.description")}
-        >
-          <ModelSelectorBase
-            value={getAutocompleteSelection(autocompleteProvider(), autocompleteModel())}
-            onSelect={handleAutocompleteModelSelect}
-            placement="bottom-start"
-            models={AUTOCOMPLETE_SELECTOR_MODELS}
-            favorites={false}
-            allowClear
-            clearLabel={language.t("settings.providers.notSet")}
-            label={language.t("settings.autocomplete.model.title")}
-            description={language.t("settings.autocomplete.model.description")}
-          />
-        </SettingsRow>
-        <SettingsRow
-          title={language.t("settings.models.speechToTextBaseUrl.title")}
-          description={language.t("settings.models.speechToTextBaseUrl.description")}
-        >
-          <TextField
-            value={config().experimental?.speech_to_text_base_url ?? ""}
-            placeholder={language.t("settings.models.speechToTextBaseUrl.placeholder")}
-            onChange={(value: string) => updateSpeech({ speech_to_text_base_url: value.trim() || null })}
-          />
-        </SettingsRow>
-        <SettingsRow
-          title={language.t("settings.models.speechToTextApiKey.title")}
-          description={language.t("settings.models.speechToTextApiKey.description")}
-        >
-          <TextField
-            type="password"
-            value={config().experimental?.speech_to_text_api_key ?? ""}
-            placeholder={language.t("settings.models.speechToTextApiKey.placeholder")}
-            disabled={!customSpeech()}
-            onChange={(value: string) => updateSpeech({ speech_to_text_api_key: value.trim() || null })}
-          />
-        </SettingsRow>
-        <SettingsRow
-          title={language.t("settings.models.speechToTextModel.title")}
-          description={
-            !features().speechToText
-              ? language.t("settings.models.speechToText.remoteDescription")
-              : customSpeech()
-                ? language.t("settings.models.speechToTextModel.customDescription")
-                : kiloReady()
-                  ? language.t("settings.models.speechToTextModel.description")
-                  : language.t("settings.models.speechToText.disabledDescription")
-          }
-        >
-          <Show
-            when={!customSpeech()}
-            fallback={
-              <TextField
-                value={config().experimental?.speech_to_text_model ?? ""}
-                placeholder={language.t("settings.models.speechToTextModel.customPlaceholder")}
-                onChange={(value: string) => updateSpeech({ speech_to_text_model: value.trim() || null })}
-              />
-            }
-          >
-            <Tooltip
-              value={language.t("settings.models.speechToText.disabledDescription")}
-              placement="top"
-              inactive={kiloReady()}
-            >
-              <Select
-                options={speechOptions()}
-                current={speechOption()}
-                value={(item) => item.value}
-                label={(item) => `${item.label} (${item.provider})`}
-                onSelect={(item) =>
-                  updateSpeech({ speech_to_text_model: item?.value ?? DEFAULT_SPEECH_TO_TEXT_MODEL.id })
-                }
-                variant="secondary"
-                size="small"
-                triggerVariant="settings"
-                triggerProps={{
-                  "aria-label": `${language.t("settings.models.speechToTextModel.title")}: ${speechOption()?.label}`,
-                }}
-                disabled={!kiloReady()}
-                placeholder={DEFAULT_SPEECH_TO_TEXT_MODEL.label}
-              />
-            </Tooltip>
-          </Show>
-        </SettingsRow>
-        <SettingsRow
-          title={language.t("settings.models.hidePromptTraining.title")}
-          description={language.t("settings.models.hidePromptTraining.description")}
-          last
-        >
-          <Switch
-            checked={config().hide_prompt_training_models === true}
-            onChange={(checked: boolean) => updateConfig({ hide_prompt_training_models: checked })}
-            hideLabel
-          >
-            {language.t("settings.models.hidePromptTraining.title")}
-          </Switch>
-        </SettingsRow>
+        {/* albert_change - autocomplete, speech to text and Kilo prompt-training rows removed */}
       </Card>
 
       <h4 style={{ "margin-top": "24px", "margin-bottom": "8px" }}>{language.t("settings.providers.modeModels")}</h4>

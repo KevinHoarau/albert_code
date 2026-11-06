@@ -17,7 +17,8 @@
     "./scoped/https": "./src/scoped/https.ts",
     "./scoped/net": "./src/scoped/net.ts",
     "./scoped/tls": "./src/scoped/tls.ts",
-    "./scoped/dns": "./src/scoped/dns.ts"
+    "./scoped/dns": "./src/scoped/dns.ts",
+    "./tools": "./src/tools.ts"
   },
   "scripts": {
     "typecheck": "tsgo --noEmit",

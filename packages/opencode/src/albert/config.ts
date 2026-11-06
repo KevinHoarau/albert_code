@@ -3,23 +3,10 @@
 import type { Config } from "@/config/config"
 import { active } from "@albert-code/guard/env"
 import { base } from "@albert-code/guard/policy"
+import { TOOLS } from "@albert-code/guard/tools"
 import { ID, KEY } from "./catalog"
 
-// Tools that reach a server other than Albert, or a Kilo service.
-export const TOOLS: readonly string[] = [
-  "webfetch",
-  "websearch",
-  "codesearch",
-  "repo_clone",
-  "repo_overview",
-  "generate_image",
-  "browser_open",
-  "notify_user",
-  "send_file",
-  "link_pr",
-  "semantic_search",
-  "execute",
-]
+export { TOOLS } from "@albert-code/guard/tools"
 
 const remote = /^[a-z][a-z0-9+.-]*:\/\//i
 
