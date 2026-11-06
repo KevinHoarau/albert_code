@@ -2586,42 +2586,11 @@ body.am-wt-dragging-active * {
   user-select: none;
 }
 
-.am-diff-end-mascot-wrap {
-  filter: drop-shadow(0 6px 12px color-mix(in oklab, var(--surface-base) 45%, black));
-}
-
-.am-diff-end-mascot {
-  image-rendering: pixelated;
-}
-
-.am-kiloman-upper {
-  transform-box: fill-box;
-  transform-origin: center bottom;
-  animation: am-kiloman-idle 520ms linear infinite;
-}
-
+/* albert_change - Kilo mascot removed */
 .am-diff-end-text {
   margin: 0;
   font-size: var(--font-size-base);
   color: var(--text-weak);
-}
-
-@keyframes am-kiloman-idle {
-  0% {
-    transform: translateY(0px);
-  }
-  25% {
-    transform: translateY(1px);
-  }
-  50% {
-    transform: translateY(0px);
-  }
-  75% {
-    transform: translateY(-1px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
 }
 
 .am-diff-content {

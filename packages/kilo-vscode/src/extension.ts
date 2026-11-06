@@ -334,7 +334,9 @@ export async function activate(context: vscode.ExtensionContext) {
     }
     if (state.enabled === prior.enabled) return
     void vscode.window.showInformationMessage(
-      state.enabled ? "Keep Awake enabled. Kilo will prevent system sleep while agents work." : "Keep Awake disabled.",
+      state.enabled
+        ? "Keep Awake enabled. Albert Code will prevent system sleep while agents work."
+        : "Keep Awake disabled.", // albert_change
     )
   })
   context.subscriptions.push({ dispose: unsubscribeCaffeination })
@@ -345,14 +347,14 @@ export async function activate(context: vscode.ExtensionContext) {
     }
     if (context.globalState.get<boolean>("caffeination.confirmed") === true) return true
     const detail = [
-      "Keep Awake prevents system sleep while Kilo sessions are in progress, including some waits for approval. It does not keep the display on or disable screen locking. It turns off when this VS Code window reloads.",
+      "Keep Awake prevents system sleep while Albert Code sessions are in progress, including some waits for approval. It does not keep the display on or disable screen locking. It turns off when this VS Code window reloads.", // albert_change
       "Agents may continue to access files, network services, and available credentials while the computer is locked. Enable only if your organization's device policy permits it.",
       ...(process.platform === "linux"
         ? ["On Linux, this can also block manual suspend. Turn Keep Awake off before suspending."]
         : []),
     ].join("\n\n")
     const answer = await vscode.window.showWarningMessage(
-      "Keep this computer awake while Kilo agents work?",
+      "Keep this computer awake while Albert Code agents work?", // albert_change
       { modal: true, detail },
       "Enable Keep Awake",
     )

@@ -14,26 +14,26 @@ export class KiloCodeActionProvider implements vscode.CodeActionProvider {
 
     const actions: vscode.CodeAction[] = []
 
-    const add = new vscode.CodeAction("Add to Kilo Code", vscode.CodeActionKind.RefactorRewrite)
-    add.command = { command: "kilo-code.new.addToContext", title: "Add to Kilo Code" }
+    const add = new vscode.CodeAction("Add to Albert Code", vscode.CodeActionKind.RefactorRewrite) // albert_change
+    add.command = { command: "kilo-code.new.addToContext", title: "Add to Albert Code" } // albert_change
     actions.push(add)
 
     const hasDiagnostics = context.diagnostics.length > 0
 
     if (hasDiagnostics) {
-      const fix = new vscode.CodeAction("Fix with Kilo Code", vscode.CodeActionKind.QuickFix)
-      fix.command = { command: "kilo-code.new.fixCode", title: "Fix with Kilo Code" }
+      const fix = new vscode.CodeAction("Fix with Albert Code", vscode.CodeActionKind.QuickFix) // albert_change
+      fix.command = { command: "kilo-code.new.fixCode", title: "Fix with Albert Code" } // albert_change
       fix.isPreferred = true
       actions.push(fix)
     }
 
     if (!hasDiagnostics) {
-      const explain = new vscode.CodeAction("Explain with Kilo Code", vscode.CodeActionKind.RefactorRewrite)
-      explain.command = { command: "kilo-code.new.explainCode", title: "Explain with Kilo Code" }
+      const explain = new vscode.CodeAction("Explain with Albert Code", vscode.CodeActionKind.RefactorRewrite) // albert_change
+      explain.command = { command: "kilo-code.new.explainCode", title: "Explain with Albert Code" } // albert_change
       actions.push(explain)
 
-      const improve = new vscode.CodeAction("Improve with Kilo Code", vscode.CodeActionKind.RefactorRewrite)
-      improve.command = { command: "kilo-code.new.improveCode", title: "Improve with Kilo Code" }
+      const improve = new vscode.CodeAction("Improve with Albert Code", vscode.CodeActionKind.RefactorRewrite) // albert_change
+      improve.command = { command: "kilo-code.new.improveCode", title: "Improve with Albert Code" } // albert_change
       actions.push(improve)
     }
 

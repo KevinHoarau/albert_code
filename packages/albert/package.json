@@ -18,7 +18,8 @@
     "./scoped/net": "./src/scoped/net.ts",
     "./scoped/tls": "./src/scoped/tls.ts",
     "./scoped/dns": "./src/scoped/dns.ts",
-    "./tools": "./src/tools.ts"
+    "./tools": "./src/tools.ts",
+    "./brand": "./src/brand.ts"
   },
   "scripts": {
     "typecheck": "tsgo --noEmit",

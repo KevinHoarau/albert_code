@@ -60,7 +60,7 @@ export function registerCommitMessageService(
         client = await connectionService.getClientAsync(path)
       } catch (err) {
         console.error("[Kilo New] Failed to connect to Kilo backend:", err)
-        vscode.window.showErrorMessage("Failed to connect to Kilo backend. Please try again.")
+        vscode.window.showErrorMessage("Failed to connect to Albert Code backend. Please try again.") // albert_change
         return
       }
 

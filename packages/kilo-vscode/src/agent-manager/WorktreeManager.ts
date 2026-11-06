@@ -1047,18 +1047,18 @@ export class WorktreeManager {
     const items = [
       [".kilo/worktrees/", "Albert Code agent worktrees"] /* albert_change */,
       [".kilo/agent-manager.json", "Albert Code Agent Manager state"] /* albert_change */,
-      [".kilo/setup-script", "Kilo Code worktree setup script"],
-      [".kilo/setup-script.sh", "Kilo Code worktree setup script"],
-      [".kilo/setup-script.ps1", "Kilo Code worktree setup script"],
-      [".kilo/setup-script.cmd", "Kilo Code worktree setup script"],
-      [".kilo/setup-script.bat", "Kilo Code worktree setup script"],
-      [".kilocode/worktrees/", "Kilo Code legacy agent worktrees"],
-      [".kilocode/agent-manager.json", "Kilo Agent Manager legacy state"],
-      [".kilocode/setup-script", "Kilo Code legacy worktree setup script"],
-      [".kilocode/setup-script.sh", "Kilo Code legacy worktree setup script"],
-      [".kilocode/setup-script.ps1", "Kilo Code legacy worktree setup script"],
-      [".kilocode/setup-script.cmd", "Kilo Code legacy worktree setup script"],
-      [".kilocode/setup-script.bat", "Kilo Code legacy worktree setup script"],
+      [".kilo/setup-script", "Albert Code worktree setup script"], // albert_change
+      [".kilo/setup-script.sh", "Albert Code worktree setup script"], // albert_change
+      [".kilo/setup-script.ps1", "Albert Code worktree setup script"], // albert_change
+      [".kilo/setup-script.cmd", "Albert Code worktree setup script"], // albert_change
+      [".kilo/setup-script.bat", "Albert Code worktree setup script"], // albert_change
+      [".kilocode/worktrees/", "Albert Code legacy agent worktrees"], // albert_change
+      [".kilocode/agent-manager.json", "Albert Code Agent Manager legacy state"], // albert_change
+      [".kilocode/setup-script", "Albert Code legacy worktree setup script"], // albert_change
+      [".kilocode/setup-script.sh", "Albert Code legacy worktree setup script"], // albert_change
+      [".kilocode/setup-script.ps1", "Albert Code legacy worktree setup script"], // albert_change
+      [".kilocode/setup-script.cmd", "Albert Code legacy worktree setup script"], // albert_change
+      [".kilocode/setup-script.bat", "Albert Code legacy worktree setup script"], // albert_change
     ] as const
 
     for (const [entry, comment] of items) {

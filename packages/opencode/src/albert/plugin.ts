@@ -1,6 +1,7 @@
 // The only provider plugin loaded by Albert Code.
 import type { Hooks } from "@kilocode/plugin"
 import * as Log from "@opencode-ai/core/util/log"
+import { brand } from "@albert-code/guard/brand"
 import { base } from "@albert-code/guard/policy"
 import { ID, KEY } from "./catalog"
 import { AlbertModels } from "./models"
@@ -9,6 +10,10 @@ const log = Log.create({ service: "albert" })
 
 export async function AlbertPlugin(): Promise<Hooks> {
   return {
+    // The prompts inherited from Kilo introduce the agent as "Kilo".
+    "experimental.chat.system.transform": async (_input, output) => {
+      output.system.splice(0, output.system.length, ...output.system.map(brand))
+    },
     provider: {
       id: ID,
       async models(_provider, ctx) {
