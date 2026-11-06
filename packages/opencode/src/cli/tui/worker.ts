@@ -1,3 +1,4 @@
+import "@/albert/boot" // albert_change - force the Albert environment and network guard first
 import { Server } from "@/server/server"
 import { InstanceRuntime } from "@/project/instance-runtime"
 import { Rpc } from "@/util/rpc"

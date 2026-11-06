@@ -3,6 +3,8 @@
 // user environment can never re-enable a remote feature.
 
 export const forced: Readonly<Record<string, string>> = {
+  // Marks a process started through an Albert Code entry point (see active()).
+  ALBERT_CODE: "1",
   KILO_DISABLE_SESSION_INGEST: "true",
   KILO_DISABLE_SHARE: "true",
   KILO_DISABLE_MODELS_FETCH: "true",
@@ -41,6 +43,13 @@ export const removed: readonly string[] = [
   "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
   "OTEL_EXPORTER_OTLP_HEADERS",
 ]
+
+// True in every process started through an Albert Code entry point: the CLI
+// sets it on itself before loading anything else. Upstream unit tests, which
+// import modules directly, keep testing upstream behaviour.
+export function active(env: Record<string, string | undefined> = process.env) {
+  return env.ALBERT_CODE === "1"
+}
 
 // Mutates `env` in place (process.env inside the CLI) and returns it.
 export function enforce<T extends Record<string, string | undefined>>(env: T) {

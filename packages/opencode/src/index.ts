@@ -1,3 +1,4 @@
+import "./albert/boot" // albert_change - force the Albert environment and network guard first
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 // kilocode_change - upstream account console intentionally omitted; KiloCli registers `kilo console` for local settings

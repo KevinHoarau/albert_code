@@ -1,3 +1,4 @@
+import "@/albert/boot" // albert_change - force the Albert environment and network guard first
 import { Config } from "./config"
 import { Chunker } from "./worker/chunks"
 import { handleEvent } from "./worker/handlers"

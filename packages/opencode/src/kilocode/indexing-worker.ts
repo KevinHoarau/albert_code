@@ -1,3 +1,4 @@
+import "@/albert/boot" // albert_change - force the Albert environment and network guard first
 import type { CodeIndexManager } from "@kilocode/kilo-indexing/engine"
 import { AsyncLocalStorage } from "node:async_hooks"
 import { format } from "node:util"

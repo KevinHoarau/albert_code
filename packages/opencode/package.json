@@ -101,6 +101,7 @@
     "@kilocode/kilo-indexing": "workspace:*",
     "@kilocode/kilo-memory": "workspace:*",
     "@kilocode/kilo-telemetry": "workspace:*",
+    "@albert-code/guard": "workspace:*",
     "@kilocode/plugin": "workspace:*",
     "@kilocode/plugin-atomic-chat": "workspace:*",
     "@kilocode/sandbox": "workspace:*",
