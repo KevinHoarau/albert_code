@@ -49,6 +49,7 @@ import { sanitizeProjectMcpHeaders } from "../kilocode/config/mcp-headers"
 import { primaryPaths } from "../kilocode/primary-worktree"
 import { Git } from "@/git"
 import { KilocodeDefaultPlugins } from "@/kilocode/config/default-plugins"
+import { AlbertConfig } from "@/albert/config" // albert_change
 import { KilocodeGlobalConfigStamp } from "@/kilocode/config/global-stamp"
 import { SandboxConfig } from "@/kilocode/sandbox/config"
 import { ExternalMarkdown } from "@/kilocode/config/external-markdown"
@@ -1056,6 +1057,7 @@ const layer = Layer.effect(
         // kilocode_change start — inject Kilo default plugins into both plugin list and origins
         KilocodeDefaultPlugins.apply(result, { disabled: Flag.KILO_DISABLE_DEFAULT_PLUGINS, log })
         // kilocode_change end
+        AlbertConfig.apply(result) // albert_change - last word over every config source
 
         return {
           config: result,

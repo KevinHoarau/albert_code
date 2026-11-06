@@ -41,6 +41,7 @@ import { RepoOverviewTool } from "@/kilocode/tool/repo-overview" // kilocode_cha
 import { ContextInfoTool, CompactTool } from "@/kilocode/tool/context" // kilocode_change
 import { RepoCloneTool } from "./repo_clone" // kilocode_change
 import { Flag } from "@opencode-ai/core/flag/flag" // kilocode_change
+import { AlbertConfig } from "@/albert/config" // albert_change
 import { Auth } from "@/auth" // kilocode_change
 import { Env } from "@/env" // kilocode_change - websearch resolves its config via Env.Service
 import { LspTool } from "./lsp"
@@ -342,7 +343,7 @@ const layer = Layer.effect(
 
     const all: Interface["all"] = Effect.fn("ToolRegistry.all")(function* () {
       const s = yield* InstanceState.get(state)
-      return [...s.builtin.map(ToolNetwork.builtin), ...s.custom] as Tool.Def[] // kilocode_change
+      return [...s.builtin.map(ToolNetwork.builtin), ...s.custom].filter(AlbertConfig.keep) as Tool.Def[] // kilocode_change // albert_change - drop network tools
     })
 
     const ids: Interface["ids"] = Effect.fn("ToolRegistry.ids")(function* () {
