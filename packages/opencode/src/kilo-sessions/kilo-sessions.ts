@@ -961,7 +961,7 @@ export namespace KiloSessions {
 
       throw new Error("Remote control is not available in Albert Code") // albert_change
 
-      const url = (process.env["KILO_SESSION_INGEST_URL"] ?? "https://ingest.kilosessions.ai")
+      const url = "" // albert_change - remote control removed
         .replace(/^https:\/\//, "wss://")
         .replace(/^http:\/\//, "ws://")
 

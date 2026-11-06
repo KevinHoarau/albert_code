@@ -159,13 +159,18 @@ const runImport = Effect.fn("Cli.import.body")(function* (file: string, ctx: Ins
   if (isUrl) {
     // kilocode_change start - Migrate to upstream ShareNext architecture #10281
     const slug = parseShareUrl(file)
+    // albert_change start - shared sessions are hosted by Kilo: importing from a URL is removed
+    process.stdout.write(`Importing shared sessions from a URL is not available in Albert Code`)
+    process.stdout.write(EOL)
+    if (file) return
+    // albert_change end
     if (!slug) {
       process.stdout.write(`Invalid URL format. Expected: https://app.kilo.ai/s/<id>`)
       process.stdout.write(EOL)
       return
     }
 
-    const base = process.env["KILO_SESSION_INGEST_URL"] ?? "https://ingest.kilosessions.ai"
+    const base = "" // albert_change
     const response = yield* Effect.tryPromise({
       try: () => fetch(`${base}/session/${encodeURIComponent(slug)}`),
       catch: (e) =>

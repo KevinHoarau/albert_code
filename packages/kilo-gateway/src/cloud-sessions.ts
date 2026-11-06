@@ -147,7 +147,8 @@ function completed(part: z.infer<typeof partSchema>) {
   return result.data
 }
 
-const INGEST_BASE = process.env.KILO_SESSION_INGEST_URL ?? "https://ingest.kilosessions.ai"
+// albert_change - cloud sessions removed: no ingest base, every fetch is refused by the network guard
+const INGEST_BASE = ""
 const TIMEOUT = 30_000
 
 function exportUrl(sessionId: string, cut?: string) {
