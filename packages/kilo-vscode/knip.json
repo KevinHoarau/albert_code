@@ -16,9 +16,26 @@
     "src/**/__tests__/**/*.{ts,spec.ts}",
     "src/**/*.test.ts",
     "tests/**/*.{ts,mts}",
-    "script/*.ts"
+    "script/*.ts",
+    "src/albert/vscode.ts",
+    "src/albert/playwright.ts"
   ],
-  "project": ["src/**/*.ts", "webview-ui/**/*.{ts,tsx}"],
+  "project": [
+    "src/**/*.ts",
+    "webview-ui/**/*.{ts,tsx}"
+  ],
   "ignoreExportsUsedInFile": true,
-  "exclude": ["dependencies", "devDependencies", "optionalPeerDependencies", "unlisted", "unresolved", "binaries"]
+  "exclude": [
+    "dependencies",
+    "devDependencies",
+    "optionalPeerDependencies",
+    "unlisted",
+    "unresolved",
+    "binaries"
+  ],
+  "ignore": [
+    "src/services/autocomplete/index.ts",
+    "webview-ui/src/components/settings/AutocompleteTab.tsx",
+    "webview-ui/src/components/settings/BrowserTab.tsx"
+  ]
 }
