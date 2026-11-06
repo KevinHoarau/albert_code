@@ -1,0 +1,92 @@
+name: albert
+
+# Albert Code CI: checks of the packages Albert Code modifies, the network
+# isolated end-to-end test and its negative, and the VSIX build with its host
+# scan. Nothing is published: the VSIX is only kept as a private workflow artifact.
+
+on:
+  push:
+    branches: [albert_code]
+  pull_request:
+    branches: [albert_code]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  BUN_VERSION: 1.4.4
+  ZIG_URL: https://ziglang.org/download/0.14.0/zig-linux-x86_64-0.14.0.tar.xz
+  ZIG_SHA256: 473ec26806133cf4d1918caf1a410f8403a13d979726a9045b421b685031a982
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+      - name: Workflow allowlist
+        run: bun run script/check-workflows.ts
+      - name: Typecheck
+        run: |
+          for dir in albert opencode core kilo-telemetry kilo-gateway kilo-vscode; do
+            (cd packages/$dir && bun run typecheck)
+          done
+      - name: Lint (extension)
+        run: bun run --cwd packages/kilo-vscode lint
+      - name: Unit tests (guard, core, telemetry)
+        run: |
+          (cd packages/albert && bun test)
+          (cd packages/core && bun test)
+          (cd packages/kilo-telemetry && bun test)
+      - name: Unit tests (CLI, Albert mode and touched areas)
+        working-directory: packages/opencode
+        run: bun test test/albert test/config test/tool/registry.test.ts test/plugin test/provider test/session
+      - name: Unit tests (extension)
+        run: bun run --cwd packages/kilo-vscode test:unit
+
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+      - name: Tools for the isolated network namespace
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nftables tcpdump
+          # Ubuntu 24.04 restricts unprivileged user namespaces through AppArmor.
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Zig (build of the bundled Bubblewrap helper)
+        run: |
+          curl -fsSL "$ZIG_URL" -o "$RUNNER_TEMP/zig.tar.xz"
+          echo "$ZIG_SHA256  $RUNNER_TEMP/zig.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/zig.tar.xz" -C "$RUNNER_TEMP"
+          echo "ZIG=$RUNNER_TEMP/zig-linux-x86_64-0.14.0/zig" >> "$GITHUB_ENV"
+      - name: Build the CLI
+        working-directory: packages/opencode
+        run: bun run script/build.ts --single --skip-install
+      - name: Network E2E test
+        run: bash packages/albert/e2e/run.sh packages/opencode/dist/@kilocode/cli-linux-x64/bin/kilo
+      - name: Negative test (a deliberate leak must be detected)
+        run: bash packages/albert/e2e/negative.sh packages/opencode/dist/@kilocode/cli-linux-x64/bin/kilo
+      - name: Build the VSIX and scan it for hosts
+        working-directory: packages/kilo-vscode
+        run: bun script/albert-package.ts
+      - name: VS Code smoke test (extension host in the isolated namespace)
+        run: |
+          curl -fsSL "https://update.code.visualstudio.com/latest/linux-deb-x64/stable" -o "$RUNNER_TEMP/code.deb"
+          sudo apt-get install -y "$RUNNER_TEMP/code.deb" xvfb
+          xvfb-run -a bash packages/albert/e2e/run.sh --vscode packages/kilo-vscode/out/albert-code-linux-x64.vsix
+      - uses: actions/upload-artifact@v4
+        with:
+          name: albert-code-linux-x64-vsix
+          path: packages/kilo-vscode/out/albert-code-linux-x64.vsix
+          retention-days: 14

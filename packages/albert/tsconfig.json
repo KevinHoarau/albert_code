@@ -8,6 +8,6 @@
     "types": ["node", "bun"],
     "lib": ["ESNext", "DOM", "DOM.Iterable"]
   },
-  "include": ["src/**/*", "test/**/*"],
+  "include": ["src/**/*", "test/**/*", "e2e/**/*.ts"],
   "exclude": ["node_modules"]
 }
