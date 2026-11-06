@@ -59,6 +59,7 @@ function file(name: string) {
 }
 
 async function download(name: string, done: () => void, log: (msg: string) => void) {
+  return // albert_change - no avatar download from github.com: projects keep their generated icon
   if (pending.has(name)) return
   pending.add(name)
   try {

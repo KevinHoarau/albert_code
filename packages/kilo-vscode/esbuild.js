@@ -7,6 +7,7 @@ const core = require("@babel/core")
 const solid = require("babel-preset-solid")
 const ts = require("@babel/preset-typescript")
 const playwright = require("./script/playwright-runtime")
+const albert = require("./script/albert-esbuild") // albert_change
 
 const production = process.argv.includes("--production")
 const watch = process.argv.includes("--watch")
@@ -427,7 +428,11 @@ function getExtensionConfig() {
     outfile: "dist/extension.js",
     external: ["vscode"],
     logLevel: "silent",
-    plugins: [playwright, ...(watch ? [esbuildProblemMatcherPlugin] : [])],
+    // albert_change start - network guard, pinned settings, no Playwright runtime
+    inject: albert.inject,
+    define: albert.define,
+    plugins: [albert.plugin, ...(watch ? [esbuildProblemMatcherPlugin] : [])],
+    // albert_change end
   }
 }
 

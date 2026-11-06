@@ -2,6 +2,8 @@
 // extension's esbuild.js). The process globals stay untouched.
 import { fetcher, socket } from "../guard"
 
-const real = globalThis.fetch
+// Read through Reflect: the build defines `globalThis.fetch` as the guarded one.
+const real = Reflect.get(globalThis, "fetch") as typeof globalThis.fetch
 export const fetch = fetcher(real)
-export const WebSocket = globalThis.WebSocket ? socket(globalThis.WebSocket, "websocket") : undefined
+const ws = Reflect.get(globalThis, "WebSocket") as typeof globalThis.WebSocket | undefined
+export const WebSocket = ws ? socket(ws, "websocket") : undefined

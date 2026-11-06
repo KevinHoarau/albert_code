@@ -10,6 +10,14 @@ export function buildConnectSrc(port?: number): string {
   return "http://127.0.0.1:* http://localhost:* ws://127.0.0.1:* ws://localhost:*"
 }
 
+// albert_change - frames may only show local pages (agent manager previews)
+function local(frame?: string) {
+  return (frame ?? "")
+    .split(/\s+/)
+    .filter((src) => /^http:\/\/(localhost|127\.0\.0\.1)(:(\*|\d+))?$/.test(src))
+    .join(" ")
+}
+
 /**
  * Join an array of CSP directives into a policy string.
  */
@@ -36,8 +44,9 @@ export function buildCspString(
     `worker-src ${cspSource}`,
     `font-src ${cspSource}`,
     `connect-src ${cspSource} ${connectSrc}`,
-    `img-src ${cspSource} data: https:`,
-    ...(frame ? [`frame-src ${frame}`] : []),
+    // albert_change - no remote image (a Markdown image could exfiltrate data) and no remote frame
+    `img-src ${cspSource} data: blob:`,
+    ...(local(frame) ? [`frame-src ${local(frame)}`] : []),
   ]
   return joinCspDirectives(directives)
 }

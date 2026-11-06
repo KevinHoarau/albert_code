@@ -100,12 +100,22 @@ describe("buildCspString", () => {
     expect(result).not.toContain(`worker-src ${cspSource} blob:`)
   })
 
-  it("includes cspSource and https: in img-src", () => {
+  // albert_change - remote images are refused (a Markdown image could exfiltrate data)
+  it("includes cspSource but no remote origin in img-src", () => {
     const result = buildCspString(cspSource, nonce)
-    expect(result).toContain("img-src")
-    expect(result).toContain(cspSource)
-    expect(result).toContain("https:")
-    expect(result).toContain("data:")
+    const img = result.split("; ").find((item) => item.startsWith("img-src")) ?? ""
+    expect(img).toContain(cspSource)
+    expect(img).toContain("data:")
+    expect(img).not.toContain("https:")
+    expect(img).not.toContain("*")
+  })
+
+  // albert_change
+  it("only allows loopback frames", () => {
+    const result = buildCspString(cspSource, nonce, 1234, "http://localhost:* https://example.com http://127.0.0.1:*")
+    expect(result).toContain("frame-src http://localhost:* http://127.0.0.1:*")
+    expect(result).not.toContain("example.com")
+    expect(buildCspString(cspSource, nonce, 1234, "https://example.com")).not.toContain("frame-src")
   })
 
   it("uses wildcard connect-src when no port provided", () => {
