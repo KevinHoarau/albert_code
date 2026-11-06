@@ -1,9 +1,19 @@
 // DNS server for the isolated network namespace. It records every query (any
 // query means something tried to resolve a name) and answers A queries with a
-// sink address, so that a resolved name also produces a connection attempt the
-// packet counter can see.
+// sink address unique to that name (10.66.x.y on the dummy link), so that a
+// resolved name also produces a connection attempt the packet counter and the
+// capture can attribute.
 
-const sink = [10, 66, 0, 9]
+const names = new Map<string, number[]>()
+
+export function sink(host: string) {
+  const known = names.get(host)
+  if (known) return known
+  const i = names.size
+  const address = [10, 66, 1 + Math.floor(i / 250), 1 + (i % 250)]
+  names.set(host, address)
+  return address
+}
 
 function name(buf: Buffer, start: number) {
   const labels: string[] = []
@@ -26,10 +36,9 @@ export function answer(query: Buffer) {
   head.writeUInt16BE(0x8180, 2)
   head.writeUInt16BE(1, 4)
   head.writeUInt16BE(a ? 1 : 0, 6)
-  const record = a
-    ? Buffer.from([0xc0, 0x0c, 0, 1, 0, 1, 0, 0, 0, 60, 0, 4, ...sink])
-    : Buffer.alloc(0)
-  return { name: q.name, type, packet: Buffer.concat([head, question, record]) }
+  const address = sink(q.name)
+  const record = a ? Buffer.from([0xc0, 0x0c, 0, 1, 0, 1, 0, 0, 0, 60, 0, 4, ...address]) : Buffer.alloc(0)
+  return { name: q.name, type, address: address.join("."), packet: Buffer.concat([head, question, record]) }
 }
 
 if (import.meta.main) {
@@ -42,7 +51,7 @@ if (import.meta.main) {
     socket: {
       data(socket, data, port, address) {
         const out = answer(Buffer.from(data))
-        seen.push(JSON.stringify({ name: out.name, type: out.type, time: new Date().toISOString() }))
+        seen.push(JSON.stringify({ name: out.name, type: out.type, address: out.address, time: new Date().toISOString() }))
         void Bun.write(file, seen.join("\n") + "\n")
         socket.send(out.packet, port, address)
       },

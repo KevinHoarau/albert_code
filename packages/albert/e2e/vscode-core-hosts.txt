@@ -1,0 +1,6 @@
+# Hosts contacted by VS Code / Electron themselves (not by Albert Code), tolerated
+# only in `run.sh --vscode`. The CLI scenario tolerates nothing.
+# Chromium component updater
+redirector.gvt1.com
+# VS Code webview resource origin
+main.vscode-cdn.net
