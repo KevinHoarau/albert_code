@@ -2,7 +2,7 @@
   "name": "albert-code",
   "displayName": "Albert Code",
   "description": "AI coding agent for VS Code that only talks to the Albert API (albert.api.etalab.gouv.fr). Unofficial fork of Kilo Code.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "icon": "assets/icons/logo-outline-black.png",
   "galleryBanner": {
     "color": "#FFFFFF",

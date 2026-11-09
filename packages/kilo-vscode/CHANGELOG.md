@@ -2,6 +2,14 @@
 
 Albert Code versions are independent from Kilo Code versions. Each entry names the Kilo Code release it is based on; Kilo Code's own release notes are at https://github.com/Kilo-Org/kilocode/releases.
 
+## 1.1.0
+
+Based on Kilo Code 7.8.18. Linux x64 and Windows x64.
+
+- Windows x64 build.
+- The API key and URL fields in the Albert settings tab are readable again (they were squeezed to a few pixels next to their buttons).
+- A new API key or URL applies right away: the backend restarts on its own, no window reload needed. A running session is interrupted.
+
 ## 1.0.0
 
 First release, based on Kilo Code 7.8.18. Linux x64 only.
