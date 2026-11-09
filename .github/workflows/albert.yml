@@ -44,6 +44,18 @@ jobs:
           sudo apt-get install -y bubblewrap
           # Ubuntu 24.04 restricts unprivileged user namespaces through AppArmor.
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: ripgrep on PATH (core tests otherwise download it at test time)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RG: ripgrep-15.1.0-x86_64-unknown-linux-musl
+          RG_SHA256: 1c9297be4a084eea7ecaedf93eb03d058d6faae29bbc57ecdaf5063921491599
+        run: |
+          # gh goes through the API, which kept serving assets while release
+          # downloads answered 504.
+          gh release download 15.1.0 -R BurntSushi/ripgrep -p "$RG.tar.gz" -D "$RUNNER_TEMP"
+          echo "$RG_SHA256  $RUNNER_TEMP/$RG.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/$RG.tar.gz" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/$RG" >> "$GITHUB_PATH"
       - name: Unit tests (guard, core, telemetry)
         run: |
           (cd packages/albert && bun test)
@@ -89,7 +101,7 @@ jobs:
       - name: VS Code smoke test (extension host in the isolated namespace)
         run: |
           curl -fsSL "https://update.code.visualstudio.com/latest/linux-deb-x64/stable" -o "$RUNNER_TEMP/code.deb"
-          sudo apt-get install -y "$RUNNER_TEMP/code.deb" xvfb
+          sudo apt-get install -y "$RUNNER_TEMP/code.deb" xvfb x11-utils x11-apps
           xvfb-run -a bash packages/albert/e2e/run.sh --vscode packages/kilo-vscode/out/albert-code-linux-x64.vsix
       - uses: actions/upload-artifact@v4
         with:
