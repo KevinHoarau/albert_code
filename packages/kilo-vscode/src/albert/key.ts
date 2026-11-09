@@ -36,16 +36,25 @@ export async function vars(context: vscode.ExtensionContext): Promise<Record<str
   return { ALBERT_BASE_URL: url(), ...(key && { ALBERT_API_KEY: key }) }
 }
 
-// The CLI reads the key and URL at startup, so a change asks for a reload.
-async function reload() {
-  const choice = await vscode.window.showInformationMessage(
-    "Albert Code: reload the window to apply the new Albert settings.",
-    "Reload",
-  )
-  if (choice === "Reload") await vscode.commands.executeCommand("workbench.action.reloadWindow")
+// The CLI reads the key and URL at startup: a change restarts it. Changes are
+// applied one after the other so a quick edit never races a restart.
+function apply(restart: () => Promise<void>) {
+  let queue = Promise.resolve()
+  return () => {
+    queue = queue
+      .then(restart)
+      .then(() => {
+        vscode.window.setStatusBarMessage("Albert Code: new Albert settings applied.", 5000)
+      })
+      .catch((err) => {
+        console.error("[Albert Code] Backend restart failed:", err)
+        void vscode.window.showErrorMessage("Albert Code: the backend did not restart with the new Albert settings.")
+      })
+  }
 }
 
-export function register(context: vscode.ExtensionContext) {
+export function register(context: vscode.ExtensionContext, restart: () => Promise<void>) {
+  const changed = apply(restart)
   context.subscriptions.push(
     vscode.commands.registerCommand("kilo-code.new.setAlbertApiKey", async () => {
       const value = await vscode.window.showInputBox({
@@ -58,10 +67,10 @@ export function register(context: vscode.ExtensionContext) {
       await store(context, value)
     }),
     context.secrets.onDidChange((event) => {
-      if (event.key === SECRET) void reload()
+      if (event.key === SECRET) changed()
     }),
     vscode.workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration(SETTING)) void reload()
+      if (event.affectsConfiguration(SETTING)) changed()
     }),
   )
   void read(context).then(async (key) => {

@@ -604,8 +604,9 @@ export const dict = {
     "Albert Code ne communique qu'avec l'API Albert. La clé est conservée dans le SecretStorage de VS Code ; elle n'est plus jamais affichée ni écrite dans un fichier.",
   "settings.albert.apiKey.title": "Clé API",
   "settings.albert.apiKey.description":
-    "Clé de votre compte Albert. VS Code propose ensuite de recharger la fenêtre.",
+    "Clé de votre compte Albert. L'enregistrer redémarre le backend d'Albert Code, sans recharger la fenêtre.",
   "settings.albert.apiKey.placeholder": "Collez votre clé API Albert",
+  "settings.albert.apiKey.replace": "Clé enregistrée (masquée). Collez-en une nouvelle pour la remplacer",
   "settings.albert.apiKey.save": "Enregistrer",
   "settings.albert.apiKey.remove": "Supprimer",
   "settings.albert.apiKey.secret": "Configurée (SecretStorage de VS Code)",
@@ -616,7 +617,7 @@ export const dict = {
     "Seul https://albert.api.etalab.gouv.fr est accepté. Laisser vide pour la valeur par défaut.",
   "settings.albert.models.title": "Modèles disponibles",
   "settings.albert.models.description": "Lus sur l'endpoint /v1/models d'Albert au démarrage du backend.",
-  "settings.albert.models.none": "Aucun modèle pour l'instant : vérifiez la clé API, puis rechargez la fenêtre.",
+  "settings.albert.models.none": "Aucun modèle pour l'instant : vérifiez la clé API.",
   // albert_change end
   "settings.models.title": "Modèles",
 

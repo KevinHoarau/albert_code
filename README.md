@@ -46,7 +46,7 @@ Le modèle par défaut, le petit modèle (titres, messages de commit), le modèl
 
 Aucun identifiant de modèle n'est codé en dur. Au démarrage, la CLI lit `GET /v1/models`, garde les modèles de chat et met la réponse en cache pour les démarrages hors ligne. Les titres de session et les messages de commit utilisent un modèle Albert.
 
-Après un changement de clé ou d'URL, VS Code propose de recharger la fenêtre.
+Après un changement de clé ou d'URL, l'extension redémarre son backend (la CLI lit la clé et l'URL au démarrage) : inutile de recharger la fenêtre. Une session en cours est interrompue par ce redémarrage.
 
 ### Coexistence avec Kilo Code
 

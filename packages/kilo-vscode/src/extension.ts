@@ -88,14 +88,14 @@ export async function activate(context: vscode.ExtensionContext) {
   })
   context.subscriptions.push(vscode.window.onDidChangeActiveColorTheme(() => browserBroker.retheme()))
 
-  AlbertKey.register(context) // albert_change - Albert API key in SecretStorage, base URL setting
-
   // Create shared connection service (one server for all webviews)
   const connectionService = new KiloConnectionService(
     context,
     () => browserBroker.env(),
     (dir): Promise<void> => browserAutomationService.ready(dir),
   )
+  // albert_change - Albert API key in SecretStorage, base URL setting; a change restarts the backend
+  AlbertKey.register(context, () => connectionService.restart())
 
   // One MCP OAuth sign-in service for the whole extension (sidebar, Kilo tabs, Settings, Marketplace).
   // Initialize it eagerly so its MCP OAuth URL subscriptions and `onUrl`

@@ -15,6 +15,11 @@ const muted = {
   color: "var(--vscode-descriptionForeground)",
 } as const
 
+// A field and its buttons: the row wraps under its label rather than squeezing
+// the field, which takes the room the buttons leave.
+const row = { display: "flex", gap: "8px", "align-items": "center", "min-width": "280px" } as const
+const field = { flex: "1 1 auto", "min-width": "0" } as const
+
 const AlbertTab: Component = () => {
   const vscode = useVSCode()
   const language = useLanguage()
@@ -51,55 +56,68 @@ const AlbertTab: Component = () => {
       <p style={{ ...muted, margin: "0 0 12px 0", "line-height": "1.5" }}>
         {language.t("settings.albert.description")}
       </p>
-      <Card>
-        <SettingsRow
-          title={language.t("settings.albert.apiKey.title")}
-          description={`${language.t("settings.albert.apiKey.description")} — ${language.t(
-            `settings.albert.apiKey.${status()?.key ?? "none"}`,
-          )}`}
-        >
-          <div style={{ display: "flex", gap: "8px", "align-items": "center" }}>
-            <TextField
-              type="password"
-              value={key()}
-              placeholder={language.t("settings.albert.apiKey.placeholder")}
-              onChange={setKey}
-              hideLabel
-              label={language.t("settings.albert.apiKey.title")}
-            />
-            <Button variant="primary" size="small" disabled={!key().trim()} onClick={save}>
-              {language.t("settings.albert.apiKey.save")}
-            </Button>
-            <Show when={status()?.key === "secret"}>
-              <Button
-                variant="secondary"
-                size="small"
-                onClick={() => vscode.postMessage({ type: "setAlbertKey", key: "" })}
-              >
-                {language.t("settings.albert.apiKey.remove")}
+      {/* wide-input: the default 160px input column leaves no room for the field next to its buttons.
+          It sits on a wrapper because Card sets its own data-variant. */}
+      <div data-variant="wide-input">
+        <Card>
+          <SettingsRow
+            title={language.t("settings.albert.apiKey.title")}
+            description={`${language.t("settings.albert.apiKey.description")} — ${language.t(
+              `settings.albert.apiKey.${status()?.key ?? "none"}`,
+            )}`}
+          >
+            <div style={row}>
+              <div style={field}>
+                <TextField
+                  type="password"
+                  value={key()}
+                  placeholder={language.t(
+                    status()?.key === "secret"
+                      ? "settings.albert.apiKey.replace"
+                      : "settings.albert.apiKey.placeholder",
+                  )}
+                  onChange={setKey}
+                  onKeyDown={(event: KeyboardEvent) => event.key === "Enter" && save()}
+                  hideLabel
+                  label={language.t("settings.albert.apiKey.title")}
+                />
+              </div>
+              <Button variant="primary" size="small" disabled={!key().trim()} onClick={save}>
+                {language.t("settings.albert.apiKey.save")}
               </Button>
-            </Show>
-          </div>
-        </SettingsRow>
-        <SettingsRow
-          title={language.t("settings.albert.url.title")}
-          description={status()?.error ?? language.t("settings.albert.url.description")}
-          last
-        >
-          <div style={{ display: "flex", gap: "8px", "align-items": "center" }}>
-            <TextField
-              value={url()}
-              placeholder={status()?.default ?? "https://albert.api.etalab.gouv.fr/v1"}
-              onChange={setUrl}
-              hideLabel
-              label={language.t("settings.albert.url.title")}
-            />
-            <Button variant="secondary" size="small" disabled={!changed()} onClick={apply}>
-              {language.t("settings.albert.apiKey.save")}
-            </Button>
-          </div>
-        </SettingsRow>
-      </Card>
+              <Show when={status()?.key === "secret"}>
+                <Button
+                  variant="secondary"
+                  size="small"
+                  onClick={() => vscode.postMessage({ type: "setAlbertKey", key: "" })}
+                >
+                  {language.t("settings.albert.apiKey.remove")}
+                </Button>
+              </Show>
+            </div>
+          </SettingsRow>
+          <SettingsRow
+            title={language.t("settings.albert.url.title")}
+            description={status()?.error ?? language.t("settings.albert.url.description")}
+            last
+          >
+            <div style={row}>
+              <div style={field}>
+                <TextField
+                  value={url()}
+                  placeholder={status()?.default ?? "https://albert.api.etalab.gouv.fr/v1"}
+                  onChange={setUrl}
+                  hideLabel
+                  label={language.t("settings.albert.url.title")}
+                />
+              </div>
+              <Button variant="secondary" size="small" disabled={!changed()} onClick={apply}>
+                {language.t("settings.albert.apiKey.save")}
+              </Button>
+            </div>
+          </SettingsRow>
+        </Card>
+      </div>
 
       <h4 style={{ "margin-top": "16px", "margin-bottom": "8px" }}>{language.t("settings.albert.models.title")}</h4>
       <Card>

@@ -195,6 +195,28 @@ export class KiloConnectionService {
     }
   }
 
+  // albert_change start - restart the backend so a new Albert key or URL applies without a window reload
+  /**
+   * Replace a running backend with a fresh one (it reads the Albert key and URL
+   * at startup), then tell every webview to refetch providers, config and agents.
+   * A backend that is not running starts with the new values when it is needed.
+   */
+  async restart(): Promise<void> {
+    await this.connectPromise?.catch(() => undefined)
+    const dir = this.currentDirectory ?? this.rootDirectory
+    if (this.state !== "connected" || !dir) {
+      this.serverManager.dispose()
+      return
+    }
+    this.resetConnection()
+    this.serverManager.dispose()
+    // connect() returns early while "connected"; it announces "connecting" itself.
+    this.state = "disconnected"
+    await this.connect(dir)
+    this.broadcast({ id: `albert-restart-${Date.now()}`, type: "global.disposed", properties: {} }, "global")
+  }
+  // albert_change end
+
   /**
    * Get the shared SDK client. Throws if not connected.
    */
