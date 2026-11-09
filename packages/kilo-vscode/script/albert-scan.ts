@@ -93,7 +93,7 @@ const shared = contributed(manifest).filter((id) => /^kilo/i.test(id))
 const bundles = files
   .filter((file) => /\.(js|json|html|css)$/.test(file) && group(file) !== "cli binary")
   .filter((file) =>
-    /kilo-code\.new\b|kilo-code\.SidebarProvider|kilo-code-ActivityBar|kilo-worktree-(setup|run)/.test(
+    /kilo-code\.new\b|kilo-code\.SidebarProvider|kilo-code-ActivityBar|kilo-worktree-(setup|run)|["'`]kilocode\.kilo-code["'`]/.test(
       fs.readFileSync(file, "utf8"),
     ),
   )

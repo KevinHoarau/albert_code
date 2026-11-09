@@ -9,13 +9,14 @@ Kilo CLI is an open source AI coding agent that generates code from natural lang
 
 ## Albert Code (this repository) — read first
 
-This repository is **Albert Code**, a private fork of Kilo Code `v7.8.18`. It is a VS Code extension whose only remote host at runtime is the Albert API (`albert.api.etalab.gouv.fr`, OpenAI-compatible, base URL `https://albert.api.etalab.gouv.fr/v1`). These rules take precedence over the Kilo instructions below when they conflict.
+This repository is **Albert Code**, a fork of Kilo Code `v7.8.18`. It is a VS Code extension whose only remote host at runtime is the Albert API (`albert.api.etalab.gouv.fr`, OpenAI-compatible, base URL `https://albert.api.etalab.gouv.fr/v1`). These rules take precedence over the Kilo instructions below when they conflict.
 
-Reference documents: [README.md](README.md) (install, configuration, limits), [NETWORK.md](NETWORK.md) (outbound flow inventory and verification), [UPSTREAM.md](UPSTREAM.md) (base tag, update procedure, conflict points, upstream tests incompatible by construction).
+Reference documents: [README.md](README.md) (install, configuration, limits), [NETWORK.md](NETWORK.md) (outbound flow inventory and verification), [UPSTREAM.md](UPSTREAM.md) (base tag, update procedure, conflict points, upstream tests incompatible by construction), [RELEASE.md](RELEASE.md) (versions, GitHub Release, Marketplace).
 
 ### Hard rules
 
-- **Never publish anything**: no public repo, no Marketplace, no Open VSX, no public release. The name "Albert Code" is not yet authorized by the DINUM. Pushing to the private `origin` only when the user asks; never force-push.
+- **Publishing**: the DINUM authorized the name "Albert Code". Releases follow [RELEASE.md](RELEASE.md) and nothing else: a GitHub Release of the public `KevinHoarau/albert_code` repo, created by CI from a `vX.Y.Z` tag on `main`, then the VS Code Marketplace under the publisher `khoarau` (`khoarau.albert-code`), published by the user from that release asset. No other channel (Open VSX, npm, other marketplaces) without the user's approval. Push to `origin`, create or push a tag, or publish only when the user asks; never force-push, never move or delete a pushed tag.
+- **Versions and release notes**: Albert Code has its own semver series (`packages/kilo-vscode/package.json`, started at `1.0.0`), independent from Kilo's. It does not use changesets: user-facing changes go to `packages/kilo-vscode/CHANGELOG.md` under an exact `## X.Y.Z` heading (the release job reads it). The Changesets section below does not apply.
 - **Branches**: work on `albert_code`. `main` is the stable branch: it only receives validated versions of `albert_code` by fast-forward (`git merge --ff-only albert_code`), done by or for the user once CI and the network E2E test pass; never commit on `main` directly, never base work on it. `upstream` contains only Kilo code (one commit per imported tag); never commit Albert changes there. History is not shared with Kilo: updates go through `upstream` then `git merge upstream` (see UPSTREAM.md). Never import Kilo `main` or another tag without the user's approval.
 - **Network lock**: deny by default. The only allowlist is `packages/albert/src/policy.ts` (loopback + Albert over HTTPS:443). Never add a host, never weaken the guard or disable a test to get a green result. A new outbound flow must be cut at its entry point and documented in NETWORK.md. Build-time network (npm registry, GitHub Releases, ziglang.org) is fine; runtime network is not.
 - **Thin fork**: prefer new code in Albert-owned locations (`packages/albert/`, `packages/opencode/src/albert/`, `packages/kilo-vscode/src/albert/`, `packages/kilo-vscode/script/albert-*`, `packages/opencode/test/albert/`). Mark every change to an inherited file with `albert_change` (line comment, or `albert_change start` / `albert_change end`; `{/* albert_change */}` in JSX). Keep existing `kilocode_change` markers.
@@ -48,7 +49,8 @@ Reference documents: [README.md](README.md) (install, configuration, limits), [N
 
 - The guard does not cover commands run by the `bash` tool, local MCP servers, git/gh, or VS Code itself (it contacts `redirector.gvt1.com` and `main.vscode-cdn.net` even without the extension). Bash asks for confirmation by default; README documents a system firewall. Never claim isolation is total.
 - 42 upstream CLI integration tests that spawn the real entry point with a `test` provider fail by construction in Albert mode (listed in UPSTREAM.md); the full `test/kilocode` and `packages/opencode` suites also have many environment-dependent failures upstream. Compare against the `upstream` branch before calling a failure a regression.
-- `gh` is not installed and the shell has no GitHub credentials: pushes must be done by the user.
+- `gh` is installed and authenticated (user's account): use it read-only to follow CI (`gh run list`, `gh run view <id> --log-failed`). Push only when the user asks.
+- CI runner (Ubuntu 24.04) needs what a dev machine already has: `bubblewrap` plus `kernel.apparmor_restrict_unprivileged_userns=0` for the core sandbox tests, `rg` on PATH (core tests otherwise download it from GitHub releases, which can answer 504), `x11-utils`/`x11-apps` for the smoke test. Keep these steps in `.github/workflows/albert.yml`.
 - Electron refuses to run as (namespace) root without `--no-sandbox`, and VS Code's IPC socket path must stay under 107 characters (the smoke test uses `/tmp/aud.*`).
 
 ## Build and Dev

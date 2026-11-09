@@ -5,7 +5,7 @@ Crée, à partir du code présent dans le dépôt courant, un fork de Kilo Code 
 
 Dépôt de travail : le dépôt courant (privé), déjà initialisé avec le code du tag Kilo à forker. Ne change pas de version de base et ne re-clone pas Kilo.
 
-Ne publie rien publiquement : ni dépôt public, ni Marketplace, ni Open VSX. Le nom « Albert Code » n'a pas encore été autorisé par la DINUM.
+Le nom « Albert Code » a été autorisé par la DINUM. Ne publie que par les canaux décrits dans `RELEASE.md` (GitHub Release et VS Code Marketplace), et seulement à ma demande.
 
 ## Avant toute modification
 1. Identifie le tag de base (historique Git, `package.json`, `CHANGELOG.md`) et note-le dans `UPSTREAM.md`. S'il reste incertain, demande-le-moi.

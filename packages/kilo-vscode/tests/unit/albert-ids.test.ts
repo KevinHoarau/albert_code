@@ -23,7 +23,8 @@ describe("albert identifiers", () => {
     expect(ids('{ type: "kilo-worktree-run" }')).toBe('{ type: "albert-worktree-run" }')
     expect(ids('const STATE_FILE = "agent-manager.json"')).toBe('const STATE_FILE = "albert-agent-manager.json"')
     expect(ids("albert-agent-manager.json")).toBe("albert-agent-manager.json")
-    for (const text of ["kilocode.kilo-code", ".kilo/worktrees", "KILO_APP_NAME", "kilo-code-bot", "@kilocode/sdk"]) {
+    expect(ids('getExtension("kilocode.kilo-code")')).toBe(`getExtension("${manifest.publisher}.${manifest.name}")`)
+    for (const text of ["kilocode.kilo-code-bot", "vscode://kilocode.kilo-code/", ".kilo/worktrees", "KILO_APP_NAME", "kilo-code-bot", "@kilocode/sdk"]) {
       expect(ids(text)).toBe(text)
     }
   })

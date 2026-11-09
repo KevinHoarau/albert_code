@@ -3,8 +3,15 @@
 // them so it can be installed next to Kilo Code without sharing a command,
 // view, view container, panel type, context key, setting or task type, nor the
 // Agent Manager state of a project (.kilo/agent-manager.json).
+import manifest from "../package.json"
+
+// The extension looks itself up by Kilo's extension id (version, keybindings,
+// settings reset): in the package that id must be Albert Code's own.
+const self = `${manifest.publisher}.${manifest.name}`
+
 export function ids(text: string) {
   return text
+    .replace(/(["'`])kilocode\.kilo-code\1/g, `$1${self}$1`)
     .replace(/kilo-code\.new\b/g, "albert-code")
     .replace(/kilo-code(?=\.SidebarProvider|-ActivityBar|\.agentTerminalFocus|\.nextEdit)/g, "albert-code")
     .replace(/kilo-worktree-(?=setup|run)/g, "albert-worktree-")

@@ -2,13 +2,13 @@
   "name": "albert-code",
   "displayName": "Albert Code",
   "description": "AI coding agent for VS Code that only talks to the Albert API (albert.api.etalab.gouv.fr). Unofficial fork of Kilo Code.",
-  "version": "7.8.18",
+  "version": "1.0.0",
   "icon": "assets/icons/logo-outline-black.png",
   "galleryBanner": {
     "color": "#FFFFFF",
     "theme": "light"
   },
-  "publisher": "albert-code",
+  "publisher": "khoarau",
   "repository": {
     "type": "git",
     "url": "https://github.com/KevinHoarau/albert_code.git",

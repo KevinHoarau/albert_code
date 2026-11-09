@@ -14,7 +14,10 @@ const work = path.join(root, "work")
 const home = path.join(root, "home")
 const done = path.join(root, "done")
 const settings = path.join(root, "settings")
-const installed = fs.readdirSync(ext).find((name) => name.startsWith("albert-code.albert-code-"))
+// Installed as <publisher>.albert-code-<version>: the publisher comes from the manifest.
+const installed = fs.readdirSync(ext).find((name) => /^[\w-]+\.albert-code-\d/.test(name))
+const own = JSON.parse(fs.readFileSync(path.join(ext, installed!, "package.json"), "utf8"))
+const self = `${own.publisher}.${own.name}`
 
 function check(ok: unknown, what: string): asserts ok {
   if (!ok) throw new Error(`assertion failed: ${what}`)
@@ -125,7 +128,7 @@ const logs = [...new Bun.Glob("**/*.log").scanSync({ cwd: path.join(ud, "logs") 
 )
 const host = logs.filter((file) => /exthost/i.test(file)).map((file) => fs.readFileSync(file, "utf8")).join("\n")
 check(/albert-code/.test(host), "the extension host log mentions albert-code")
-check(!/Activating extension 'albert-code.albert-code' failed/.test(host), "the extension activated without error")
+check(!host.includes(`Activating extension '${self}' failed`), `${self} activated without error`)
 // Duplicate identifiers between Albert Code and Kilo Code (commands, views,
 // panel serializers). Both agent managers intercepting VS Code's own panel
 // commands (workbench.action.*) is a known, gracefully degraded interaction.

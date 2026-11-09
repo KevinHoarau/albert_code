@@ -2,19 +2,22 @@
 
 Albert Code est une extension VS Code d'agent de développement (chat, agents et modes, édition de fichiers, terminal, sessions locales, MCP local). À l'exécution, elle ne contacte que l'API Albert (`albert.api.etalab.gouv.fr`, compatible OpenAI).
 
-C'est un fork non officiel de [Kilo Code](https://github.com/Kilo-Org/kilocode) v7.8.18, lui-même dérivé d'[OpenCode](https://github.com/anomalyco/opencode). Il est distribué sous licence MIT (voir [LICENSE](LICENSE)). Ce n'est pas un produit de l'administration, et le nom « Albert Code » n'est pas autorisé à ce jour : ne rien publier.
+C'est un fork non officiel de [Kilo Code](https://github.com/Kilo-Org/kilocode) v7.8.18, lui-même dérivé d'[OpenCode](https://github.com/anomalyco/opencode). Il est distribué sous licence MIT (voir [LICENSE](LICENSE)). Ce n'est pas un produit de l'administration ; l'usage du nom « Albert Code » a été autorisé par la DINUM.
 
 Documents liés :
 
 - [NETWORK.md](NETWORK.md) : inventaire des flux sortants et décisions ;
-- [UPSTREAM.md](UPSTREAM.md) : version de base et procédure de mise à jour depuis Kilo.
+- [UPSTREAM.md](UPSTREAM.md) : version de base et procédure de mise à jour depuis Kilo ;
+- [RELEASE.md](RELEASE.md) : numéros de version et publication.
 
 ## Installation
 
-Le VSIX n'est publié sur aucune place de marché. Installez-le depuis un fichier :
+Depuis le VS Code Marketplace : cherchez **Albert Code** (éditeur `khoarau`) dans la vue Extensions, ou lancez `code --install-extension khoarau.albert-code`.
+
+Ou depuis un fichier, téléchargé dans l'onglet *Releases* du dépôt GitHub (vérifiez-le avec le fichier `.sha256` publié à côté) :
 
 ```bash
-code --install-extension albert-code-linux-x64.vsix
+code --install-extension albert-code-X.Y.Z-linux-x64.vsix
 ```
 
 Ou bien : VS Code → Extensions → `…` → *Install from VSIX…*.

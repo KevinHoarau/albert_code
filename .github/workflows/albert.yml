@@ -2,11 +2,14 @@ name: albert
 
 # Albert Code CI: checks of the packages Albert Code modifies, the network
 # isolated end-to-end test and its negative, and the VSIX build with its host
-# scan. Nothing is published: the VSIX is only kept as a private workflow artifact.
+# scan. The VSIX is kept as a workflow artifact. A vX.Y.Z tag on main also
+# creates the GitHub Release with that VSIX (see RELEASE.md); the Marketplace
+# is published by hand from the release asset.
 
 on:
   push:
     branches: [albert_code, main]
+    tags: ["v*"]
   pull_request:
     branches: [albert_code, main]
   workflow_dispatch:
@@ -108,3 +111,39 @@ jobs:
           name: albert-code-linux-x64-vsix
           path: packages/kilo-vscode/out/albert-code-linux-x64.vsix
           retention-days: 14
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [checks, e2e]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check the tag
+        run: |
+          version=$(jq -r .version packages/kilo-vscode/package.json)
+          test "$GITHUB_REF_NAME" = "v$version" || { echo "tag $GITHUB_REF_NAME does not match package.json version $version"; exit 1; }
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "tag $GITHUB_REF_NAME is not on main"; exit 1; }
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+      - name: Release notes (CHANGELOG entry of this version)
+        run: |
+          awk -v head="## $VERSION" '$0 == head { on = 1; next } /^## / { if (on) exit } on' packages/kilo-vscode/CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          grep -q . "$RUNNER_TEMP/notes.md" || { echo "no CHANGELOG entry for $VERSION"; exit 1; }
+      - uses: actions/download-artifact@v4
+        with:
+          name: albert-code-linux-x64-vsix
+          path: ${{ runner.temp }}/vsix
+      - name: Create the GitHub Release
+        working-directory: ${{ runner.temp }}/vsix
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          file="albert-code-$VERSION-linux-x64.vsix"
+          mv albert-code-linux-x64.vsix "$file"
+          sha256sum "$file" > "$file.sha256"
+          gh release create "$GITHUB_REF_NAME" "$file" "$file.sha256" --repo "$GITHUB_REPOSITORY" \
+            --verify-tag --title "Albert Code $VERSION" --notes-file "$RUNNER_TEMP/notes.md"
