@@ -32,6 +32,7 @@ const rg = {
   url: "https://github.com/BurntSushi/ripgrep/releases/download/15.1.0/ripgrep-15.1.0-x86_64-unknown-linux-musl.tar.gz",
   sha256: "1c9297be4a084eea7ecaedf93eb03d058d6faae29bbc57ecdaf5063921491599",
   member: "ripgrep-15.1.0-x86_64-unknown-linux-musl/rg",
+  api: "https://api.github.com/repos/BurntSushi/ripgrep/releases/assets/307306614",
 }
 
 if (!existsSync(cli) || process.argv.includes("--rebuild-cli")) {
@@ -68,7 +69,21 @@ await copyKiloSandboxWorker(cli, dest)
 chmodSync(dest, 0o755)
 
 console.log("Adding ripgrep...")
-const archive = Buffer.from(await (await fetch(rg.url)).arrayBuffer())
+// GitHub release downloads sometimes answer 502/504: retry, and fall back to
+// the API endpoint of the same asset. The checksum below decides what is accepted.
+async function download(urls: string[], left = 3): Promise<Buffer> {
+  for (const url of urls) {
+    const res = await fetch(url, { headers: { Accept: "application/octet-stream" } }).catch(
+      (err: unknown) => new Response(String(err), { status: 599 }),
+    )
+    if (res.ok) return Buffer.from(await res.arrayBuffer())
+    console.log(`ripgrep download answered HTTP ${res.status} (${url})`)
+  }
+  if (left <= 1) throw new Error("ripgrep download failed")
+  await Bun.sleep(10_000)
+  return download(urls, left - 1)
+}
+const archive = await download([rg.url, rg.api])
 const sum = createHash("sha256").update(archive).digest("hex")
 if (sum !== rg.sha256) throw new Error(`ripgrep checksum mismatch: ${sum}`)
 const tmp = path.join(out, "rg.tar.gz")

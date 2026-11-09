@@ -38,6 +38,12 @@ jobs:
           done
       - name: Lint (extension)
         run: bun run --cwd packages/kilo-vscode lint
+      - name: Bubblewrap for the core sandbox tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bubblewrap
+          # Ubuntu 24.04 restricts unprivileged user namespaces through AppArmor.
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - name: Unit tests (guard, core, telemetry)
         run: |
           (cd packages/albert && bun test)
