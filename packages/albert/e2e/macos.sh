@@ -29,7 +29,9 @@ user=albert-e2e
 uid=4242
 anchor=com.apple/albert-e2e
 
-root="$(mktemp -d /tmp/albert-e2e.XXXXXX)"
+# /tmp is a link to /private/tmp: the CLI resolves its directory, so the test
+# must use the real path or the fake model writes "outside" the project.
+root="$(cd "$(mktemp -d /tmp/albert-e2e.XXXXXX)" && pwd -P)"
 echo "e2e root: $root"
 mkdir -p "$root/bin" "$root/tools" "$root/albert" "$root/home"
 ditto "$src" "$root/bin"
