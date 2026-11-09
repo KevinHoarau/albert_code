@@ -123,6 +123,7 @@ Après résolution des conflits, et avant de commiter la fusion :
 | Tests amont adaptés | Tests de `kilo-vscode` et `opencode` portant `albert_change` | Ajuster les attentes (libellés Albert Code, CSP, dossier `albert-code`) |
 | Identifiants VS Code | `packages/kilo-vscode/script/albert-ids.ts` | Les sources gardent `kilo-code.new.*` ; le packaging renomme tout en `albert-code.*`. Si l'amont introduit un nouvel espace de noms (autre préfixe que `kilo-code.new`, `kilo-code.SidebarProvider`, `kilo-code-ActivityBar`, `kilo-code.agentTerminalFocus`, `kilo-code.nextEdit`, `kilo-worktree-*`, `agent-manager.json`), ajouter une règle : `tests/unit/albert-ids.test.ts` et `albert-scan.ts` échouent sinon |
 | Version et notes de version | `packages/kilo-vscode/package.json` (`version`, `publisher`), `packages/kilo-vscode/CHANGELOG.md`, `.changeset/*` | Garder la version, l'éditeur `khoarau` et le CHANGELOG d'Albert Code (voir [RELEASE.md](RELEASE.md)) ; supprimer les changesets amont |
+| Dependabot | `.github/dependabot.yml` | Garder la version Albert : correctifs de sécurité `bun` et GitHub Actions seulement, montées de version vers `albert_code`. Une PR de sécurité vise toujours `main` : ne jamais la fusionner, appliquer le correctif sur `albert_code` puis fermer la PR |
 | Workflows | `.github/workflows/*` | Les workflows Kilo vivent dans `disabled/` ; un workflow amont modifié y sera détecté comme renommé |
 
 ## Tests amont incompatibles par construction
