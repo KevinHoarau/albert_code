@@ -39,7 +39,7 @@ Le VSIX embarque :
 
 Sous Alpine, la CLI a besoin du runtime C++ de GCC : `apk add libstdc++ libgcc`.
 
-Les binaires ne sont pas signés par un certificat d'éditeur : sous Windows, un antivirus d'établissement peut les bloquer ou ralentir leur premier lancement ; sous macOS, ils portent seulement une signature ad hoc, comme ceux de Kilo Code.
+Les binaires ne sont pas signés par un certificat d'éditeur : sous Windows, un antivirus d'établissement peut les bloquer ou ralentir leur premier lancement ; sous macOS, la CLI Apple Silicon porte une signature ad hoc (exigée par macOS sur ces machines) et la CLI Intel garde la signature du runtime Bun, invalidée par le code embarqué, ce que les Mac Intel acceptent ; c'est la façon dont Bun produit ces binaires depuis Linux.
 
 Il n'embarque ni ffmpeg ni Playwright.
 
