@@ -210,7 +210,10 @@ jobs:
       - name: E2E test and its negative (pf rules for a dedicated user)
         if: matrix.kind == 'macos'
         run: |
-          codesign --verify --verbose "$RUNNER_TEMP/ext/extension/bin/kilo"
+          # Bun ad-hoc signs the Apple Silicon executable it compiles (macOS
+          # requires a valid signature there). The Intel one keeps the runtime's
+          # signature, invalidated by the embedded code, which Intel Macs accept.
+          codesign --verify --verbose "$RUNNER_TEMP/ext/extension/bin/kilo" || [ "${{ matrix.target }}" = darwin-x64 ]
           bash packages/albert/e2e/macos.sh "$RUNNER_TEMP/ext/extension/bin/kilo"
           bash packages/albert/e2e/macos.sh --leak "$RUNNER_TEMP/ext/extension/bin/kilo"
       - name: E2E test (connections audited by the Windows Filtering Platform)
