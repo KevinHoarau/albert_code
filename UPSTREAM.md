@@ -31,13 +31,23 @@ Ils ont été restaurés à l'identique depuis le même tag, dans le commit `38d
 | Branche | Contenu |
 |---|---|
 | `upstream` | Uniquement le code de Kilo, un commit par version importée. Ne jamais y commiter de changement Albert. |
-| `albert_code` | Le fork. Reçoit `upstream` par `git merge`. |
+| `albert_code` | Branche de travail du fork. Reçoit `upstream` par `git merge`. |
+| `main` | Branche stable : uniquement les versions validées d'`albert_code`, en avance rapide (`git merge --ff-only albert_code`). Aucun commit direct. |
+
+Une version est validée quand la CI `albert` est verte sur `albert_code`, que le test réseau et son test négatif passent, et que le VSIX construit a été vérifié. On la publie alors sur `main` :
+
+```bash
+git switch main
+git merge --ff-only albert_code
+git push origin main
+git switch albert_code
+```
 
 Le dépôt **ne partage pas** son historique avec Kilo (racine locale `b88ea19`). Un `git merge` direct d'un tag Kilo n'aurait donc aucun ancêtre commun. C'est la branche `upstream` qui sert d'ancêtre commun.
 
 ## Procédure de mise à jour vers un nouveau tag Kilo
 
-N'importez jamais `main` ni un autre tag que celui choisi, et faites valider le choix du tag.
+N'importez jamais la branche `main` de Kilo ni un autre tag que celui choisi, et faites valider le choix du tag. La mise à jour se fait sur `albert_code` ; `main` ne la reçoit qu'une fois validée.
 
 ```bash
 TAG=v7.9.0   # exemple

@@ -6,9 +6,9 @@ name: albert
 
 on:
   push:
-    branches: [albert_code]
+    branches: [albert_code, main]
   pull_request:
-    branches: [albert_code]
+    branches: [albert_code, main]
   workflow_dispatch:
 
 permissions:
