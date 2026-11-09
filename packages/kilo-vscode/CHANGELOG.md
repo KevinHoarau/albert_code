@@ -4,9 +4,9 @@ Albert Code versions are independent from Kilo Code versions. Each entry names t
 
 ## 1.1.0
 
-Based on Kilo Code 7.8.18. Linux x64 and Windows x64.
+Based on Kilo Code 7.8.18. Built for every platform Kilo Code supports.
 
-- Windows x64 build.
+- New platforms: Windows (x64 and ARM64), macOS (Intel and Apple Silicon), Linux ARM64 and Alpine Linux (x64 and ARM64). On Alpine, install `libstdc++` and `libgcc`; on Alpine ARM64, also `ripgrep`.
 - The API key and URL fields in the Albert settings tab are readable again (they were squeezed to a few pixels next to their buttons).
 - A new API key or URL applies right away: the backend restarts on its own, no window reload needed. A running session is interrupted.
 

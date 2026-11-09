@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
-// Builds the Albert Code VSIX, one per target (linux-x64 and win32-x64 by default):
-//   bun script/albert-package.ts [--target=linux-x64] [--target=win32-x64] [--rebuild-cli]
+// Builds the Albert Code VSIX, one per target (every target Kilo Code ships by default):
+//   bun script/albert-package.ts [--target=linux-x64] [--target=darwin-arm64] ... [--rebuild-cli]
 //
-// 1. builds each target's CLI binary (packages/opencode) unless it exists. The
-//    linux CLI needs Zig ($ZIG) for its Bubblewrap helper; the Windows CLI is
-//    cross-built and needs the Windows native packages
+// 1. builds each target's CLI binary (packages/opencode) unless it exists. Every
+//    CLI is cross-built from Linux: the Linux ones need Zig ($ZIG) for their
+//    Bubblewrap helper, and all need the native packages of every platform
 //    (bun install --frozen-lockfile --os='*' --cpu='*');
 // 2. checks types, lints and bundles the extension (production), once;
 // 3. for each target, copies the CLI and its resources to bin/, adds ripgrep
@@ -29,26 +29,57 @@ const bin = path.join(root, "bin")
 const out = path.join(root, "out")
 
 // ripgrep 15.1.0 release assets; the API URL is the same asset, used as fallback.
+function rg(id: number, name: string, sha256: string) {
+  const ext = name.includes("windows") ? ".zip" : ".tar.gz"
+  return {
+    url: `https://github.com/BurntSushi/ripgrep/releases/download/15.1.0/ripgrep-15.1.0-${name}${ext}`,
+    api: `https://api.github.com/repos/BurntSushi/ripgrep/releases/assets/${id}`,
+    sha256,
+    member: `ripgrep-15.1.0-${name}/${ext === ".zip" ? "rg.exe" : "rg"}`,
+  }
+}
+const musl = rg(
+  307306614,
+  "x86_64-unknown-linux-musl",
+  "1c9297be4a084eea7ecaedf93eb03d058d6faae29bbc57ecdaf5063921491599",
+)
+
+// VSIX target -> CLI build target (script/build.ts --target), its dist
+// directory and executable, and the bundled ripgrep. ripgrep publishes no
+// arm64 musl build: on alpine-arm64 the CLI uses the system rg (apk add ripgrep).
 const all = {
-  "linux-x64": {
-    cli: "cli-linux-x64",
+  "linux-x64": { build: "linux-x64", cli: "cli-linux-x64", exe: "kilo", rg: musl },
+  "linux-arm64": {
+    build: "linux-arm64",
+    cli: "cli-linux-arm64",
     exe: "kilo",
-    rg: {
-      url: "https://github.com/BurntSushi/ripgrep/releases/download/15.1.0/ripgrep-15.1.0-x86_64-unknown-linux-musl.tar.gz",
-      api: "https://api.github.com/repos/BurntSushi/ripgrep/releases/assets/307306614",
-      sha256: "1c9297be4a084eea7ecaedf93eb03d058d6faae29bbc57ecdaf5063921491599",
-      member: "ripgrep-15.1.0-x86_64-unknown-linux-musl/rg",
-    },
+    rg: rg(307306472, "aarch64-unknown-linux-gnu", "2b661c6ef508e902f388e9098d9c4c5aca72c87b55922d94abdba830b4dc885e"),
+  },
+  "alpine-x64": { build: "linux-x64-musl", cli: "cli-linux-x64-musl", exe: "kilo", rg: musl },
+  "alpine-arm64": { build: "linux-arm64-musl", cli: "cli-linux-arm64-musl", exe: "kilo", rg: undefined },
+  "darwin-x64": {
+    build: "darwin-x64",
+    cli: "cli-darwin-x64",
+    exe: "kilo",
+    rg: rg(307305422, "x86_64-apple-darwin", "64811cb24e77cac3057d6c40b63ac9becf9082eedd54ca411b475b755d334882"),
+  },
+  "darwin-arm64": {
+    build: "darwin-arm64",
+    cli: "cli-darwin-arm64",
+    exe: "kilo",
+    rg: rg(307305438, "aarch64-apple-darwin", "378e973289176ca0c6054054ee7f631a065874a352bf43f0fa60ef079b6ba715"),
   },
   "win32-x64": {
+    build: "win32-x64",
     cli: "cli-windows-x64",
     exe: "kilo.exe",
-    rg: {
-      url: "https://github.com/BurntSushi/ripgrep/releases/download/15.1.0/ripgrep-15.1.0-x86_64-pc-windows-msvc.zip",
-      api: "https://api.github.com/repos/BurntSushi/ripgrep/releases/assets/307305871",
-      sha256: "124510b94b6baa3380d051fdf4650eaa80a302c876d611e9dba0b2e18d87493a",
-      member: "ripgrep-15.1.0-x86_64-pc-windows-msvc/rg.exe",
-    },
+    rg: rg(307305871, "x86_64-pc-windows-msvc", "124510b94b6baa3380d051fdf4650eaa80a302c876d611e9dba0b2e18d87493a"),
+  },
+  "win32-arm64": {
+    build: "win32-arm64",
+    cli: "cli-windows-arm64",
+    exe: "kilo.exe",
+    rg: rg(307305789, "aarch64-pc-windows-msvc", "00d931fb5237c9696ca49308818edb76d8eb6fc132761cb2a1bd616b2df02f8e"),
   },
 }
 type Target = keyof typeof all
@@ -61,7 +92,7 @@ for (const target of targets) {
   const cli = path.join(opencode, "dist", "@kilocode", all[target].cli, "bin", all[target].exe)
   if (existsSync(cli) && !process.argv.includes("--rebuild-cli")) continue
   console.log(`Building the ${target} CLI binary...`)
-  await $`bun run script/build.ts --target=${target} --skip-install`.cwd(opencode)
+  await $`bun run script/build.ts --target=${all[target].build} --skip-install`.cwd(opencode)
 }
 
 for (const dir of [bin, path.join(root, "dist"), out]) rmSync(dir, { recursive: true, force: true })
@@ -118,19 +149,21 @@ for (const target of targets) {
   await copyKiloSandboxWorker(cli, dest)
   chmodSync(dest, 0o755)
 
-  console.log(`[${target}] Adding ripgrep...`)
-  const archive = await download([spec.rg.url, spec.rg.api])
-  const sum = createHash("sha256").update(archive).digest("hex")
-  if (sum !== spec.rg.sha256) throw new Error(`ripgrep checksum mismatch for ${target}: ${sum}`)
-  const tmp = path.join(out, path.basename(spec.rg.url))
-  await Bun.write(tmp, archive)
-  if (tmp.endsWith(".zip")) await $`unzip -q -o ${tmp} ${spec.rg.member} -d ${out}`
-  else await $`tar -xzf ${tmp} -C ${out} ${spec.rg.member}`
-  const rg = path.join(bin, path.basename(spec.rg.member))
-  await $`cp ${path.join(out, spec.rg.member)} ${rg}`
-  chmodSync(rg, 0o755)
-  rmSync(tmp)
-  rmSync(path.join(out, path.dirname(spec.rg.member)), { recursive: true, force: true })
+  if (spec.rg) {
+    console.log(`[${target}] Adding ripgrep...`)
+    const archive = await download([spec.rg.url, spec.rg.api])
+    const sum = createHash("sha256").update(archive).digest("hex")
+    if (sum !== spec.rg.sha256) throw new Error(`ripgrep checksum mismatch for ${target}: ${sum}`)
+    const tmp = path.join(out, path.basename(spec.rg.url))
+    await Bun.write(tmp, archive)
+    if (tmp.endsWith(".zip")) await $`unzip -q -o ${tmp} ${spec.rg.member} -d ${out}`
+    else await $`tar -xzf ${tmp} -C ${out} ${spec.rg.member}`
+    const rg = path.join(bin, path.basename(spec.rg.member))
+    await $`cp ${path.join(out, spec.rg.member)} ${rg}`
+    chmodSync(rg, 0o755)
+    rmSync(tmp)
+    rmSync(path.join(out, path.dirname(spec.rg.member)), { recursive: true, force: true })
+  }
 
   console.log(`[${target}] Packaging...`)
   await Bun.write(manifest, ids(source))

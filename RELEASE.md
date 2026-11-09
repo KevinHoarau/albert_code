@@ -7,7 +7,7 @@ Le nom « Albert Code » a été autorisé par la DINUM. Albert Code est publié
 | GitHub Release | dépôt public `KevinHoarau/albert_code`, onglet *Releases* | la CI, à partir d'un tag `vX.Y.Z` sur `main` |
 | VS Code Marketplace | éditeur `khoarau`, extension `khoarau.albert-code` | à la main, par l'interface web, avec le VSIX de la GitHub Release |
 
-Aucun autre canal (Open VSX, npm, autre place de marché) sans décision explicite. Deux cibles sont construites, `linux-x64` et `win32-x64` : le Marketplace propose l'extension aux utilisateurs Linux x64 et Windows x64, chacun recevant le VSIX de sa plateforme. Pas encore de macOS.
+Aucun autre canal (Open VSX, npm, autre place de marché) sans décision explicite. Les huit cibles de Kilo Code sont construites (`linux-x64`, `linux-arm64`, `alpine-x64`, `alpine-arm64`, `darwin-x64`, `darwin-arm64`, `win32-x64`, `win32-arm64`) : le Marketplace donne à chaque utilisateur le VSIX de sa plateforme.
 
 ## Numéros de version
 
@@ -32,7 +32,7 @@ Aucun autre canal (Open VSX, npm, autre place de marché) sans décision explici
    git commit -am "chore(vscode): release X.Y.Z"
    git push origin albert_code
    ```
-2. **Valider** : la CI `albert` doit être verte (jobs `checks`, `e2e` et `windows`). Installer les VSIX des artefacts `albert-code-linux-x64-vsix` et `albert-code-win32-x64-vsix` et faire un essai réel avec Albert, sous Linux et sous Windows. Si l'amont a changé, lancer aussi le test de coexistence en local (`E2E_ALSO=…`, voir le README).
+2. **Valider** : la CI `albert` doit être verte (jobs `checks`, `e2e` et les sept `e2e (<cible>)`). Installer les VSIX des artefacts `albert-code-<cible>-vsix` et faire un essai réel avec Albert sur les plateformes disponibles (au moins Linux et Windows). Si l'amont a changé, lancer aussi le test de coexistence en local (`E2E_ALSO=…`, voir le README).
 3. **Promouvoir sur `main`** (avance rapide uniquement, voir [UPSTREAM.md](UPSTREAM.md#branches)) :
    ```bash
    git switch main
@@ -45,13 +45,13 @@ Aucun autre canal (Open VSX, npm, autre place de marché) sans décision explici
    git tag -a vX.Y.Z main -m "Albert Code X.Y.Z"
    git push origin vX.Y.Z
    ```
-   La CI relance `checks`, `e2e` et `windows` sur le tag. Le job `release` vérifie ensuite que le tag correspond à la version du manifeste, qu'il est sur `main` et que le CHANGELOG a une entrée pour cette version. Il crée enfin la GitHub Release avec `albert-code-X.Y.Z-linux-x64.vsix`, `albert-code-X.Y.Z-win32-x64.vsix` et leurs empreintes `.sha256`.
+   La CI relance `checks`, `e2e` et les `e2e (<cible>)` sur le tag. Le job `release` vérifie ensuite que le tag correspond à la version du manifeste, qu'il est sur `main` et que le CHANGELOG a une entrée pour cette version. Il crée enfin la GitHub Release avec les huit `albert-code-X.Y.Z-<cible>.vsix` et leurs empreintes `.sha256`.
 5. **Publier sur le Marketplace** le fichier de la GitHub Release, sans le reconstruire :
    - le télécharger et vérifier son empreinte :
      ```bash
      gh release download vX.Y.Z -D /tmp/albert-X.Y.Z && (cd /tmp/albert-X.Y.Z && sha256sum -c ./*.sha256)
      ```
-   - sur https://marketplace.visualstudio.com/manage/publishers/khoarau : *⋯* sur la ligne d'Albert Code → *Update* → déposer `albert-code-X.Y.Z-linux-x64.vsix`, puis recommencer avec `albert-code-X.Y.Z-win32-x64.vsix` (même version, autre plateforme). La toute première fois : *+ New extension* → *Visual Studio Code*. Si l'interface refuse le second fichier, le publier avec `vsce publish --packagePath <fichier>` (jeton Azure DevOps, portée *Marketplace* → *Manage*) ;
+   - sur https://marketplace.visualstudio.com/manage/publishers/khoarau : *⋯* sur la ligne d'Albert Code → *Update* → déposer `albert-code-X.Y.Z-linux-x64.vsix`, puis recommencer avec chacun des sept autres `albert-code-X.Y.Z-<cible>.vsix` (même version, autre plateforme). La toute première fois : *+ New extension* → *Visual Studio Code*. Si l'interface refuse le second fichier, le publier avec `vsce publish --packagePath <fichier>` (jeton Azure DevOps, portée *Marketplace* → *Manage*) ;
    - attendre la fin de la vérification du Marketplace (quelques minutes).
 6. **Vérifier** la page https://marketplace.visualstudio.com/items?itemName=khoarau.albert-code : version, README, onglet *Changelog*. Puis installer l'extension depuis VS Code.
 

@@ -1,11 +1,12 @@
 name: albert
 
 # Albert Code CI: checks of the packages Albert Code modifies, the network
-# isolated end-to-end test and its negative, the VSIX build (linux-x64 and
-# win32-x64) with its host scan, and the Windows end-to-end test on a Windows
-# runner. The VSIX are kept as workflow artifacts. A vX.Y.Z tag on main also
-# creates the GitHub Release with those VSIX; the same files are then uploaded
-# to the VS Code Marketplace by hand (see RELEASE.md).
+# isolated end-to-end test and its negative, the VSIX build (every target Kilo
+# Code ships, all cross-built from Linux) with its host scan, and an end-to-end
+# test with its negative of each other target on a runner of that platform.
+# The VSIX are kept as workflow artifacts. A vX.Y.Z tag on main also creates
+# the GitHub Release with those VSIX; the same files are then uploaded to the
+# VS Code Marketplace by hand (see RELEASE.md).
 
 on:
   push:
@@ -79,7 +80,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
-      # Native packages of every platform, for the cross-built Windows CLI.
+      # Native packages of every platform, for the cross-built CLIs.
       - run: bun install --frozen-lockfile --os='*' --cpu='*'
       - name: Tools for the isolated network namespace
         run: |
@@ -96,14 +97,11 @@ jobs:
       - name: Build the CLI
         working-directory: packages/opencode
         run: bun run script/build.ts --single --skip-install
-      - name: Build the Windows CLI (cross-built)
-        working-directory: packages/opencode
-        run: bun run script/build.ts --target=win32-x64 --skip-install
       - name: Network E2E test
         run: bash packages/albert/e2e/run.sh packages/opencode/dist/@kilocode/cli-linux-x64/bin/kilo
       - name: Negative test (a deliberate leak must be detected)
         run: bash packages/albert/e2e/negative.sh packages/opencode/dist/@kilocode/cli-linux-x64/bin/kilo
-      - name: Build the VSIX (linux-x64, win32-x64) and scan them for hosts
+      - name: Build the other CLIs (cross-built), the VSIX of every target, and scan them for hosts
         working-directory: packages/kilo-vscode
         run: bun script/albert-package.ts
       - name: VS Code smoke test (extension host in the isolated namespace)
@@ -118,16 +116,60 @@ jobs:
           retention-days: 14
       - uses: actions/upload-artifact@v4
         with:
+          name: albert-code-linux-arm64-vsix
+          path: packages/kilo-vscode/out/albert-code-linux-arm64.vsix
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: albert-code-alpine-x64-vsix
+          path: packages/kilo-vscode/out/albert-code-alpine-x64.vsix
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: albert-code-alpine-arm64-vsix
+          path: packages/kilo-vscode/out/albert-code-alpine-arm64.vsix
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: albert-code-darwin-x64-vsix
+          path: packages/kilo-vscode/out/albert-code-darwin-x64.vsix
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: albert-code-darwin-arm64-vsix
+          path: packages/kilo-vscode/out/albert-code-darwin-arm64.vsix
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
           name: albert-code-win32-x64-vsix
           path: packages/kilo-vscode/out/albert-code-win32-x64.vsix
           retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: albert-code-win32-arm64-vsix
+          path: packages/kilo-vscode/out/albert-code-win32-arm64.vsix
+          retention-days: 14
 
-  # Windows has no network namespaces: windows.ps1 audits the connections of
-  # the extension's programs through the Windows Filtering Platform instead.
-  windows:
+  # The other targets, each on a runner of its platform, from the VSIX built
+  # above: run.sh on Linux arm64, run.sh inside an Alpine container
+  # (alpine.sh), pf rules for a dedicated user on macOS (macos.sh), the Windows
+  # Filtering Platform audit on Windows (windows.ps1). Each has its negative test.
+  native:
+    name: e2e (${{ matrix.target }})
     needs: e2e
-    runs-on: windows-2025
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: linux-arm64, runner: ubuntu-24.04-arm, kind: linux }
+          - { target: alpine-x64, runner: ubuntu-24.04, kind: alpine }
+          - { target: alpine-arm64, runner: ubuntu-24.04-arm, kind: alpine }
+          - { target: darwin-x64, runner: macos-15-intel, kind: macos }
+          - { target: darwin-arm64, runner: macos-15, kind: macos }
+          - { target: win32-x64, runner: windows-2025, kind: windows }
+          - { target: win32-arm64, runner: windows-11-arm, kind: windows }
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -138,20 +180,49 @@ jobs:
         run: bun test --timeout 30000
       - uses: actions/download-artifact@v4
         with:
-          name: albert-code-win32-x64-vsix
+          name: albert-code-${{ matrix.target }}-vsix
           path: ${{ runner.temp }}/vsix
       - name: Extract the VSIX
+        if: matrix.kind != 'windows'
+        run: unzip -q "$RUNNER_TEMP/vsix/albert-code-${{ matrix.target }}.vsix" -d "$RUNNER_TEMP/ext"
+      - name: Extract the VSIX (Windows)
+        if: matrix.kind == 'windows'
         run: |
           New-Item -ItemType Directory "$env:RUNNER_TEMP\ext" | Out-Null
-          tar -xf "$env:RUNNER_TEMP\vsix\albert-code-win32-x64.vsix" -C "$env:RUNNER_TEMP\ext"
+          tar -xf "$env:RUNNER_TEMP\vsix\albert-code-${{ matrix.target }}.vsix" -C "$env:RUNNER_TEMP\ext"
+      - name: Tools for the isolated network namespace
+        if: matrix.kind == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nftables tcpdump
+          # Ubuntu 24.04 restricts unprivileged user namespaces through AppArmor.
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Network E2E test and its negative (namespace)
+        if: matrix.kind == 'linux'
+        run: |
+          bash packages/albert/e2e/run.sh "$RUNNER_TEMP/ext/extension/bin/kilo"
+          bash packages/albert/e2e/negative.sh "$RUNNER_TEMP/ext/extension/bin/kilo"
+      - name: Network E2E test and its negative (namespace inside an Alpine container)
+        if: matrix.kind == 'alpine'
+        run: |
+          bash packages/albert/e2e/alpine.sh "$RUNNER_TEMP/ext/extension/bin/kilo"
+          bash packages/albert/e2e/alpine.sh --negative "$RUNNER_TEMP/ext/extension/bin/kilo"
+      - name: E2E test and its negative (pf rules for a dedicated user)
+        if: matrix.kind == 'macos'
+        run: |
+          codesign --verify --verbose "$RUNNER_TEMP/ext/extension/bin/kilo"
+          bash packages/albert/e2e/macos.sh "$RUNNER_TEMP/ext/extension/bin/kilo"
+          bash packages/albert/e2e/macos.sh --leak "$RUNNER_TEMP/ext/extension/bin/kilo"
       - name: E2E test (connections audited by the Windows Filtering Platform)
+        if: matrix.kind == 'windows'
         run: ./packages/albert/e2e/windows.ps1 -Bin "$env:RUNNER_TEMP\ext\extension\bin\kilo.exe"
       - name: Negative test (a deliberate leak must be detected)
+        if: matrix.kind == 'windows'
         run: ./packages/albert/e2e/windows.ps1 -Bin "$env:RUNNER_TEMP\ext\extension\bin\kilo.exe" -Leak
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [checks, e2e, windows]
+    needs: [checks, e2e, native]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -181,7 +252,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           files=()
-          for target in linux-x64 win32-x64; do
+          for target in linux-x64 linux-arm64 alpine-x64 alpine-arm64 darwin-x64 darwin-arm64 win32-x64 win32-arm64; do
             file="albert-code-$VERSION-$target.vsix"
             mv "albert-code-$target.vsix" "$file"
             sha256sum "$file" > "$file.sha256"

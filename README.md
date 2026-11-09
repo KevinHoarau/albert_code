@@ -17,18 +17,29 @@ Depuis le VS Code Marketplace : cherchez **Albert Code** (éditeur `khoarau`) da
 Ou depuis un fichier, téléchargé dans l'onglet *Releases* du dépôt GitHub (vérifiez-le avec le fichier `.sha256` publié à côté) :
 
 ```bash
-code --install-extension albert-code-X.Y.Z-linux-x64.vsix   # ou albert-code-X.Y.Z-win32-x64.vsix
+code --install-extension albert-code-X.Y.Z-linux-x64.vsix   # ou la cible de votre machine, voir ci-dessous
 ```
 
 Ou bien : VS Code → Extensions → `…` → *Install from VSIX…*.
 
-Deux cibles sont construites : `linux-x64` et `win32-x64` (Windows x64). macOS n'est pas encore disponible. Le VSIX embarque :
+Les mêmes cibles que Kilo Code sont construites ; le Marketplace donne à chaque machine le VSIX de sa plateforme :
+
+| Cible | Plateforme |
+|---|---|
+| `linux-x64`, `linux-arm64` | Linux (glibc) x64 et ARM64 |
+| `alpine-x64`, `alpine-arm64` | Alpine Linux (musl) x64 et ARM64, par exemple un VS Code Server dans un conteneur |
+| `darwin-x64`, `darwin-arm64` | macOS sur Mac Intel et Apple Silicon |
+| `win32-x64`, `win32-arm64` | Windows x64 et ARM64 |
+
+Le VSIX embarque :
 
 - la CLI (`bin/kilo`, `bin/kilo.exe` sous Windows) ;
-- `ripgrep` (`bin/rg`, `bin/rg.exe`) ;
+- `ripgrep` (`bin/rg`, `bin/rg.exe`), sauf pour `alpine-arm64` : ripgrep ne publie pas de binaire musl ARM64, la CLI utilise alors celui du système (`apk add ripgrep`) ;
 - sous Linux seulement, `bwrap` pour le bac à sable des commandes.
 
-Sous Windows, les binaires ne sont pas signés : un antivirus d'établissement peut les bloquer ou ralentir leur premier lancement.
+Sous Alpine, la CLI a besoin du runtime C++ de GCC : `apk add libstdc++ libgcc`.
+
+Les binaires ne sont pas signés par un certificat d'éditeur : sous Windows, un antivirus d'établissement peut les bloquer ou ralentir leur premier lancement ; sous macOS, ils portent seulement une signature ad hoc, comme ceux de Kilo Code.
 
 Il n'embarque ni ffmpeg ni Playwright.
 
@@ -86,7 +97,7 @@ Le détail des flux se trouve dans [NETWORK.md](NETWORK.md).
 
 Chaque commande `bash` exige une confirmation par défaut. Ne modifiez pas cette règle si vous dépendez de l'isolation.
 
-Sous Windows, le verrou est le même code que sous Linux, mais sa vérification est moins stricte (voir [NETWORK.md](NETWORK.md#vérifications)), et ce README ne donne d'exemple de pare-feu que pour Linux.
+Sous macOS et Windows, le verrou est le même code que sous Linux, mais sa vérification est moins stricte (voir [NETWORK.md](NETWORK.md#vérifications)), et ce README ne donne d'exemple de pare-feu que pour Linux.
 
 ### Cloisonnement strict par pare-feu système (Linux)
 
@@ -118,13 +129,13 @@ Si les adresses d'Albert changent, il faut relancer l'étape 2. Avec un proxy d'
 
 ## Construire
 
-Prérequis : Linux, `bun@1.4.4` et Zig 0.14.0 (pour l'aide Bubblewrap ; empreinte SHA-256 dans `.github/workflows/albert.yml`). Les accès réseau (registre npm, GitHub Releases, ziglang.org) n'ont lieu qu'au build. La CLI Windows est compilée depuis Linux ; elle a besoin des paquets natifs de toutes les plateformes, d'où les options de `bun install`.
+Prérequis : Linux, `bun@1.4.4` et Zig 0.14.0 (pour l'aide Bubblewrap ; empreinte SHA-256 dans `.github/workflows/albert.yml`). Les accès réseau (registre npm, GitHub Releases, ziglang.org) n'ont lieu qu'au build. Toutes les CLI sont compilées depuis Linux ; elles ont besoin des paquets natifs de toutes les plateformes, d'où les options de `bun install`.
 
 ```bash
 bun install --os='*' --cpu='*'
 export ZIG=/chemin/vers/zig
-bun --cwd packages/kilo-vscode script/albert-package.ts --rebuild-cli   # --target=linux-x64 ou --target=win32-x64 pour une seule cible
-# -> packages/kilo-vscode/out/albert-code-{linux-x64,win32-x64}.vsix, puis inventaire des hôtes présents
+bun --cwd packages/kilo-vscode script/albert-package.ts --rebuild-cli   # --target=<cible> (répétable) pour n'en construire que certaines
+# -> packages/kilo-vscode/out/albert-code-<cible>.vsix pour les 8 cibles, puis inventaire des hôtes présents
 ```
 
 ## Tests
@@ -137,7 +148,9 @@ bun --cwd packages/kilo-vscode script/albert-package.ts --rebuild-cli   # --targ
 | `bash packages/albert/e2e/run.sh <bin/kilo>` | **Test réseau E2E** : CLI réelle dans un espace réseau isolé, faux serveur compatible OpenAI ; démarrage, session, appel d'outil, titre, commit, redémarrage ; échec à la moindre requête DNS, au moindre paquet sortant ou refus du verrou |
 | `bash packages/albert/e2e/negative.sh <bin/kilo>` | **Test négatif** : une fuite volontaire doit être détectée |
 | `bash packages/albert/e2e/run.sh --vscode <vsix>` | VS Code réel sur un profil vierge, dans l'espace isolé (nécessite un affichage ou `xvfb-run`) |
-| `packages/albert/e2e/windows.ps1 -Bin <bin\kilo.exe> [-Leak]` (Windows, PowerShell administrateur ; lancé par la CI sur un runner Windows) | **Test E2E Windows** : même scénario, connexions de `kilo.exe` et `rg.exe` auditées par le Windows Filtering Platform ; échec à la moindre connexion hors boucle locale ou refus du verrou. `-Leak` : une fuite volontaire doit être détectée |
+| `bash packages/albert/e2e/alpine.sh [--negative] <bin/kilo>` (Linux avec docker ; lancé par la CI pour les deux cibles Alpine) | Le test réseau E2E (ou le test négatif) dans un conteneur Alpine, avec la CLI musl |
+| `bash packages/albert/e2e/macos.sh [--leak] <bin/kilo>` (macOS, sudo sans mot de passe ; lancé par la CI sur des runners macOS) | **Test E2E macOS** : même scénario, lancé par un utilisateur dédié dont pf bloque et compte tout paquet TCP/UDP hors boucle locale ; échec au moindre paquet bloqué ou refus du verrou. `--leak` : une fuite volontaire doit être détectée |
+| `packages/albert/e2e/windows.ps1 -Bin <bin\kilo.exe> [-Leak]` (Windows, PowerShell administrateur ; lancé par la CI sur des runners Windows) | **Test E2E Windows** : même scénario, connexions de `kilo.exe` et `rg.exe` auditées par le Windows Filtering Platform ; échec à la moindre connexion hors boucle locale ou refus du verrou. `-Leak` : une fuite volontaire doit être détectée |
 | `E2E_ALSO=<dossier de Kilo Code> bash packages/albert/e2e/run.sh --vscode <vsix>` | Coexistence : Kilo Code et Albert Code dans le même VS Code, sans doublon d'enregistrement ; seuls les refus du verrou d'Albert décident du verdict réseau |
 
 Le test réseau doit passer avant toute fusion depuis Kilo (voir [UPSTREAM.md](UPSTREAM.md)).
