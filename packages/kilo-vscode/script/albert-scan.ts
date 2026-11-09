@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 // Searches a VSIX for the hosts listed in NETWORK.md and prints where they
 // appear (extension host bundle, webview bundles, CLI binary).
-//   bun script/albert-scan.ts out/albert-code-linux-x64.vsix
+//   bun script/albert-scan.ts out/albert-code-<target>.vsix
 //
 // A string in the bundle is not a flow: the runtime guard and the isolated E2E
 // test decide what is reachable. This report is the input for that review.
@@ -57,7 +57,7 @@ const ext = path.join(dir, "extension")
 
 function group(file: string) {
   const rel = path.relative(ext, file)
-  if (rel === "bin/kilo") return "cli binary"
+  if (rel === "bin/kilo" || rel === "bin/kilo.exe") return "cli binary"
   if (rel === "dist/extension.js") return "extension host"
   if (rel.startsWith("dist/")) return "webview / workers"
   return "other"

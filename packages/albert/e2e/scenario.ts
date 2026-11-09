@@ -39,6 +39,22 @@ async function serve(url: string) {
     ALBERT_BASE_URL: url,
     ALBERT_API_KEY: "e2e-key",
     ALBERT_GUARD_LOG: process.env.ALBERT_GUARD_LOG,
+    // Windows (windows.ps1): Winsock needs SystemRoot, and the profile folders
+    // point inside the test root like HOME does.
+    ...(process.platform === "win32"
+      ? {
+          SystemRoot: process.env.SystemRoot,
+          SystemDrive: process.env.SystemDrive,
+          windir: process.env.windir,
+          ComSpec: process.env.ComSpec,
+          PATHEXT: process.env.PATHEXT,
+          USERPROFILE: home,
+          APPDATA: path.join(home, "AppData", "Roaming"),
+          LOCALAPPDATA: path.join(home, "AppData", "Local"),
+          TEMP: path.join(root, "tmp"),
+          TMP: path.join(root, "tmp"),
+        }
+      : {}),
   })
   const proc = Bun.spawn([bin, "serve", "--port", "0"], { cwd: work, env, stdout: "pipe", stderr: "pipe" })
   const log = fs.createWriteStream(path.join(root, "serve.log"), { flags: "a" })
@@ -83,6 +99,7 @@ async function serve(url: string) {
 async function main() {
   fs.mkdirSync(work, { recursive: true })
   fs.mkdirSync(home, { recursive: true })
+  fs.mkdirSync(path.join(root, "tmp"), { recursive: true })
   git("init", "-q", "-b", "main")
   git("config", "user.email", "e2e@example.invalid")
   git("config", "user.name", "E2E")

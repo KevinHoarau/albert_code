@@ -17,16 +17,18 @@ Depuis le VS Code Marketplace : cherchez **Albert Code** (éditeur `khoarau`) da
 Ou depuis un fichier, téléchargé dans l'onglet *Releases* du dépôt GitHub (vérifiez-le avec le fichier `.sha256` publié à côté) :
 
 ```bash
-code --install-extension albert-code-X.Y.Z-linux-x64.vsix
+code --install-extension albert-code-X.Y.Z-linux-x64.vsix   # ou albert-code-X.Y.Z-win32-x64.vsix
 ```
 
 Ou bien : VS Code → Extensions → `…` → *Install from VSIX…*.
 
-La seule cible construite à ce jour est `linux-x64`. Le VSIX embarque :
+Deux cibles sont construites : `linux-x64` et `win32-x64` (Windows x64). macOS n'est pas encore disponible. Le VSIX embarque :
 
-- la CLI (`bin/kilo`) ;
-- `ripgrep` (`bin/rg`) ;
-- `bwrap` pour le bac à sable des commandes.
+- la CLI (`bin/kilo`, `bin/kilo.exe` sous Windows) ;
+- `ripgrep` (`bin/rg`, `bin/rg.exe`) ;
+- sous Linux seulement, `bwrap` pour le bac à sable des commandes.
+
+Sous Windows, les binaires ne sont pas signés : un antivirus d'établissement peut les bloquer ou ralentir leur premier lancement.
 
 Il n'embarque ni ffmpeg ni Playwright.
 
@@ -84,6 +86,8 @@ Le détail des flux se trouve dans [NETWORK.md](NETWORK.md).
 
 Chaque commande `bash` exige une confirmation par défaut. Ne modifiez pas cette règle si vous dépendez de l'isolation.
 
+Sous Windows, le verrou est le même code que sous Linux, mais sa vérification est moins stricte (voir [NETWORK.md](NETWORK.md#vérifications)), et ce README ne donne d'exemple de pare-feu que pour Linux.
+
 ### Cloisonnement strict par pare-feu système (Linux)
 
 Pour un cloisonnement strict, exécutez VS Code sous un utilisateur dédié, puis n'autorisez que la boucle locale, le DNS et Albert. Exemple avec nftables :
@@ -114,13 +118,13 @@ Si les adresses d'Albert changent, il faut relancer l'étape 2. Avec un proxy d'
 
 ## Construire
 
-Prérequis : `bun@1.4.4` et Zig 0.14.0 (pour l'aide Bubblewrap ; empreinte SHA-256 dans `.github/workflows/albert.yml`). Les accès réseau (registre npm, GitHub Releases, ziglang.org) n'ont lieu qu'au build.
+Prérequis : Linux, `bun@1.4.4` et Zig 0.14.0 (pour l'aide Bubblewrap ; empreinte SHA-256 dans `.github/workflows/albert.yml`). Les accès réseau (registre npm, GitHub Releases, ziglang.org) n'ont lieu qu'au build. La CLI Windows est compilée depuis Linux ; elle a besoin des paquets natifs de toutes les plateformes, d'où les options de `bun install`.
 
 ```bash
-bun install
+bun install --os='*' --cpu='*'
 export ZIG=/chemin/vers/zig
-bun --cwd packages/kilo-vscode script/albert-package.ts --rebuild-cli
-# -> packages/kilo-vscode/out/albert-code-linux-x64.vsix, puis inventaire des hôtes présents
+bun --cwd packages/kilo-vscode script/albert-package.ts --rebuild-cli   # --target=linux-x64 ou --target=win32-x64 pour une seule cible
+# -> packages/kilo-vscode/out/albert-code-{linux-x64,win32-x64}.vsix, puis inventaire des hôtes présents
 ```
 
 ## Tests
@@ -133,6 +137,7 @@ bun --cwd packages/kilo-vscode script/albert-package.ts --rebuild-cli
 | `bash packages/albert/e2e/run.sh <bin/kilo>` | **Test réseau E2E** : CLI réelle dans un espace réseau isolé, faux serveur compatible OpenAI ; démarrage, session, appel d'outil, titre, commit, redémarrage ; échec à la moindre requête DNS, au moindre paquet sortant ou refus du verrou |
 | `bash packages/albert/e2e/negative.sh <bin/kilo>` | **Test négatif** : une fuite volontaire doit être détectée |
 | `bash packages/albert/e2e/run.sh --vscode <vsix>` | VS Code réel sur un profil vierge, dans l'espace isolé (nécessite un affichage ou `xvfb-run`) |
+| `packages/albert/e2e/windows.ps1 -Bin <bin\kilo.exe> [-Leak]` (Windows, PowerShell administrateur ; lancé par la CI sur un runner Windows) | **Test E2E Windows** : même scénario, connexions de `kilo.exe` et `rg.exe` auditées par le Windows Filtering Platform ; échec à la moindre connexion hors boucle locale ou refus du verrou. `-Leak` : une fuite volontaire doit être détectée |
 | `E2E_ALSO=<dossier de Kilo Code> bash packages/albert/e2e/run.sh --vscode <vsix>` | Coexistence : Kilo Code et Albert Code dans le même VS Code, sans doublon d'enregistrement ; seuls les refus du verrou d'Albert décident du verdict réseau |
 
 Le test réseau doit passer avant toute fusion depuis Kilo (voir [UPSTREAM.md](UPSTREAM.md)).

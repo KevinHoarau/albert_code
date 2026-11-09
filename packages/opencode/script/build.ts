@@ -36,6 +36,8 @@ const singleFlag = process.argv.includes("--single")
 const baselineFlag = process.argv.includes("--baseline")
 const skipInstall = process.argv.includes("--skip-install")
 const sourcemapsFlag = process.argv.includes("--sourcemaps")
+// albert_change - --target=<os>-<arch> builds that one standard target (e.g. win32-x64) from any host
+const only = process.argv.find((arg) => arg.startsWith("--target="))?.slice("--target=".length)
 const plugin = createSolidTransformPlugin()
 
 // kilocode_change start - codebase indexing
@@ -244,7 +246,10 @@ const allTargets: {
   },
 ]
 
-const targets = singleFlag
+// albert_change start
+const targets = only
+  ? allTargets.filter((item) => `${item.os}-${item.arch}` === only && !item.abi && item.avx2 !== false)
+  : singleFlag
   ? allTargets.filter((item) => {
       if (item.os !== process.platform || item.arch !== process.arch) {
         return false
@@ -264,9 +269,14 @@ const targets = singleFlag
       return true
     })
   : allTargets
+if (only && targets.length !== 1) throw new Error(`unknown target ${only}`)
+// albert_change end
 
 // kilocode_change start
-await $`rm -rf dist`
+// albert_change start - a --target build keeps the other targets already in dist
+if (only) await $`rm -rf ${targets.map((item) => `dist/${pkg.name}-${item.os === "win32" ? "windows" : item.os}-${item.arch}`)}`
+else await $`rm -rf dist`
+// albert_change end
 const [kiloConsoleDist, kiloSandboxWorker, kiloSandboxNetwork] = await Promise.all([
   buildKiloConsole(),
   KiloSandboxWorker.bundle(),
