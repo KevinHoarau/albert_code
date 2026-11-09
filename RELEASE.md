@@ -5,7 +5,7 @@ Le nom « Albert Code » a été autorisé par la DINUM. Albert Code est publié
 | Canal | Où | Qui publie |
 |---|---|---|
 | GitHub Release | dépôt public `KevinHoarau/albert_code`, onglet *Releases* | la CI, à partir d'un tag `vX.Y.Z` sur `main` |
-| VS Code Marketplace | éditeur `khoarau`, extension `khoarau.albert-code` | la CI, avec le VSIX de la GitHub Release, après ton approbation |
+| VS Code Marketplace | éditeur `khoarau`, extension `khoarau.albert-code` | à la main, par l'interface web, avec le VSIX de la GitHub Release |
 
 Aucun autre canal (Open VSX, npm, autre place de marché) sans décision explicite. Seule la cible `linux-x64` est construite : le Marketplace ne propose donc l'extension qu'aux utilisateurs Linux x64.
 
@@ -24,11 +24,6 @@ Aucun autre canal (Open VSX, npm, autre place de marché) sans décision explici
    ```
 2. **Rendre le dépôt public** : GitHub → *Settings* → *General* → *Danger Zone* → *Change visibility*.
 3. **Créer l'éditeur** `khoarau` sur https://marketplace.visualstudio.com/manage (compte Microsoft).
-4. **Créer un jeton d'accès** Azure DevOps (https://dev.azure.com → *User settings* → *Personal access tokens*) : organisation *All accessible organizations*, portée *Marketplace* → *Manage*. Il expire (un an au plus) : noter la date pour le renouveler. Le garder dans un gestionnaire de mots de passe, jamais dans le dépôt.
-5. **Créer l'environnement GitHub `marketplace`** : *Settings* → *Environments* → *New environment* → `marketplace`.
-   - *Required reviewers* : toi. Chaque publication attend ton approbation.
-   - *Deployment branches and tags* : *Selected branches and tags*, règle de tag `v*`.
-   - *Environment secrets* : `VSCE_PAT` = le jeton de l'étape 4. Il n'est lisible que par le job `marketplace`, pas par les autres jobs ni par les PR.
 
 ## Procédure
 
@@ -51,20 +46,17 @@ Aucun autre canal (Open VSX, npm, autre place de marché) sans décision explici
    git push origin vX.Y.Z
    ```
    La CI relance `checks` et `e2e` sur le tag. Le job `release` vérifie ensuite que le tag correspond à la version du manifeste, qu'il est sur `main` et que le CHANGELOG a une entrée pour cette version. Il crée enfin la GitHub Release avec `albert-code-X.Y.Z-linux-x64.vsix` et son empreinte `.sha256`.
-5. **Approuver la publication sur le Marketplace** : le job `marketplace` attend dans l'onglet *Actions* (*Review deployments* → *Approve and deploy*). Il télécharge le VSIX de la GitHub Release, vérifie son empreinte et le publie sans le reconstruire. Avant d'approuver, tu peux installer le VSIX de la release pour un dernier essai.
-
-   Publication à la main (par exemple si la CI n'est pas disponible), avec le même fichier :
-   ```bash
-   gh release download vX.Y.Z -D /tmp/albert-X.Y.Z && (cd /tmp/albert-X.Y.Z && sha256sum -c ./*.sha256)
-   read -rs VSCE_PAT && export VSCE_PAT
-   packages/kilo-vscode/node_modules/.bin/vsce publish --skip-duplicate --packagePath /tmp/albert-X.Y.Z/albert-code-X.Y.Z-linux-x64.vsix
-   unset VSCE_PAT
-   ```
+5. **Publier sur le Marketplace** le fichier de la GitHub Release, sans le reconstruire :
+   - le télécharger et vérifier son empreinte :
+     ```bash
+     gh release download vX.Y.Z -D /tmp/albert-X.Y.Z && (cd /tmp/albert-X.Y.Z && sha256sum -c ./*.sha256)
+     ```
+   - sur https://marketplace.visualstudio.com/manage/publishers/khoarau : *⋯* sur la ligne d'Albert Code → *Update* → déposer `albert-code-X.Y.Z-linux-x64.vsix` (la toute première fois : *+ New extension* → *Visual Studio Code*) ;
+   - attendre la fin de la vérification du Marketplace (quelques minutes).
 6. **Vérifier** la page https://marketplace.visualstudio.com/items?itemName=khoarau.albert-code : version, README, onglet *Changelog*. Puis installer l'extension depuis VS Code.
 
 ## En cas d'erreur
 
 - Un tag poussé n'est jamais déplacé ni supprimé : on corrige sur `albert_code` et on publie `X.Y.Z+1`.
 - Si le job `release` échoue avant de créer la release (tag différent de la version, entrée de CHANGELOG absente), corriger la cause et relancer le job depuis l'onglet *Actions*. Si la correction exige un nouveau commit, publier un nouveau numéro.
-- Si le job `marketplace` échoue (jeton expiré ou absent), corriger le secret `VSCE_PAT` et relancer le job : il republie le même VSIX, et `--skip-duplicate` ignore une version déjà en ligne.
 - Une version publiée sur le Marketplace ne peut pas être republiée. Retirer une version (*Unpublish*) cache toute l'extension : préférer un correctif.

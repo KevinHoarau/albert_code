@@ -3,9 +3,8 @@ name: albert
 # Albert Code CI: checks of the packages Albert Code modifies, the network
 # isolated end-to-end test and its negative, and the VSIX build with its host
 # scan. The VSIX is kept as a workflow artifact. A vX.Y.Z tag on main also
-# creates the GitHub Release with that VSIX, then publishes that same file to
-# the VS Code Marketplace once approved in the "marketplace" environment (see
-# RELEASE.md).
+# creates the GitHub Release with that VSIX; that same file is then uploaded
+# to the VS Code Marketplace by hand (see RELEASE.md).
 
 on:
   push:
@@ -148,32 +147,3 @@ jobs:
           sha256sum "$file" > "$file.sha256"
           gh release create "$GITHUB_REF_NAME" "$file" "$file.sha256" --repo "$GITHUB_REPOSITORY" \
             --verify-tag --title "Albert Code $VERSION" --notes-file "$RUNNER_TEMP/notes.md"
-
-  # Publishes the exact VSIX of the GitHub Release. Runs in the "marketplace"
-  # environment: its required reviewer approves each publication, and its
-  # VSCE_PAT secret (Azure DevOps token, Marketplace > Manage) is only readable
-  # here (see RELEASE.md).
-  marketplace:
-    needs: release
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    environment:
-      name: marketplace
-      url: https://marketplace.visualstudio.com/items?itemName=khoarau.albert-code
-    permissions:
-      contents: read
-    steps:
-      - name: Download the release VSIX
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --pattern "albert-code-*-linux-x64.vsix*" --dir "$RUNNER_TEMP/vsix"
-          cd "$RUNNER_TEMP/vsix" && sha256sum --check ./*.sha256
-      - name: Publish to the VS Code Marketplace
-        working-directory: ${{ runner.temp }}/vsix
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: |
-          test -n "$VSCE_PAT" || { echo "VSCE_PAT is not set in the marketplace environment"; exit 1; }
-          # --skip-duplicate: a version already published by hand is not an error.
-          npx --yes @vscode/vsce@4.0.0 publish --skip-duplicate --packagePath ./albert-code-*-linux-x64.vsix
