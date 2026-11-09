@@ -46,12 +46,14 @@ if ! id "$user" > /dev/null 2>&1; then
   sudo dscl . -create "/Users/$user" UserShell /bin/bash
   sudo dscl . -create "/Users/$user" NFSHomeDirectory "$root/home"
 fi
-sudo chown -R "$user" "$root"
 
 # Loopback passes; any other TCP or UDP packet of the test user is blocked and
 # logged. The default /etc/pf.conf evaluates the com.apple/* anchors.
 # "return" makes a blocked connect fail at once instead of waiting for a timeout.
 printf 'pass quick on lo0 all\nblock return log quick proto { tcp udp } all user %s\n' "$uid" > "$root/pf.conf"
+# The test user owns the tree; the runner still reads the results.
+sudo chown -R "$user" "$root"
+sudo chmod 755 "$root"
 sudo ifconfig pflog0 create 2> /dev/null || true
 token="$(sudo pfctl -E 2>&1 | sed -n 's/^Token : //p')"
 sudo pfctl -a "$anchor" -f "$root/pf.conf"
