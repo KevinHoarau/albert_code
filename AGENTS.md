@@ -7,6 +7,50 @@ Kilo CLI is an open source AI coding agent that generates code from natural lang
 - Prefer automation: execute requested actions without confirmation unless blocked by missing info or safety/irreversibility.
 - You may be running in a git worktree. All changes must be made in your current working directory — never modify files in the main repo checkout.
 
+## Albert Code (this repository) — read first
+
+This repository is **Albert Code**, a private fork of Kilo Code `v7.8.18`. It is a VS Code extension whose only remote host at runtime is the Albert API (`albert.api.etalab.gouv.fr`, OpenAI-compatible, base URL `https://albert.api.etalab.gouv.fr/v1`). These rules take precedence over the Kilo instructions below when they conflict.
+
+Reference documents: [README.md](README.md) (install, configuration, limits), [NETWORK.md](NETWORK.md) (outbound flow inventory and verification), [UPSTREAM.md](UPSTREAM.md) (base tag, update procedure, conflict points, upstream tests incompatible by construction).
+
+### Hard rules
+
+- **Never publish anything**: no public repo, no Marketplace, no Open VSX, no public release. The name "Albert Code" is not yet authorized by the DINUM. Pushing to the private `origin` only when the user asks; never force-push.
+- **Branches**: work on `albert_code`. `upstream` contains only Kilo code (one commit per imported tag); never commit Albert changes there. `main` is the raw initial import; do not use it as a base. History is not shared with Kilo: updates go through `upstream` then `git merge upstream` (see UPSTREAM.md). Never import Kilo `main` or another tag without the user's approval.
+- **Network lock**: deny by default. The only allowlist is `packages/albert/src/policy.ts` (loopback + Albert over HTTPS:443). Never add a host, never weaken the guard or disable a test to get a green result. A new outbound flow must be cut at its entry point and documented in NETWORK.md. Build-time network (npm registry, GitHub Releases, ziglang.org) is fine; runtime network is not.
+- **Thin fork**: prefer new code in Albert-owned locations (`packages/albert/`, `packages/opencode/src/albert/`, `packages/kilo-vscode/src/albert/`, `packages/kilo-vscode/script/albert-*`, `packages/opencode/test/albert/`). Mark every change to an inherited file with `albert_change` (line comment, or `albert_change start` / `albert_change end`; `{/* albert_change */}` in JSX). Keep existing `kilocode_change` markers.
+- **Secrets**: the user's Albert key is in `~/.config/albert/api_key` (mode 600). Only ever read it as `ALBERT_API_KEY="$(cat ~/.config/albert/api_key)"` inside a command; never print, log, commit or copy it. Check with `git grep -cF` before pushing if in doubt.
+- **No model id is hard-coded**: Albert models come from `GET /v1/models` (`packages/opencode/src/albert/models.ts`).
+- Write user-facing replies in French (the user writes in French). Code, comments and commit messages stay in English.
+
+### How Albert Code works
+
+- **Albert mode** (CLI): `packages/opencode/src/albert/boot.ts` is the first import of every CLI entry point and worker. It forces the environment (`packages/albert/src/env.ts`, sets `ALBERT_CODE=1`), installs the process-wide network guard (`packages/albert/src/install.ts`) and writes a local catalog that only declares Albert. Albert behaviour (single provider, enforced config in `src/albert/config.ts`, removed tools, no npm install, no models.dev refresh, bundled ripgrep) is gated on `ALBERT_CODE=1`, so upstream unit tests still test upstream behaviour; `test/albert` tests Albert mode. CLI data dirs are `~/.{local/share,cache,config}/albert-code`.
+- **Extension host**: the guard is applied to the extension bundle only (the extension host is shared with other extensions) through `packages/kilo-vscode/script/albert-esbuild.js` (node net modules, fetch, WebSocket, a `vscode` wrapper that pins settings of removed features, a playwright stub). Webview CSP: no remote image or frame.
+- **API key / URL**: SecretStorage (fallback `ALBERT_API_KEY`), setting `albertCode.apiBaseUrl`; UI in the first settings tab (`webview-ui/src/components/settings/AlbertTab.tsx`, host side `src/albert/panel.ts`, `src/albert/key.ts`). The key never goes back to the webview.
+- **Removed features** (do not reintroduce): Kilo account/gateway/kilo-auto/BYOK and third-party providers, cloud history/share/remote control/session ingest/session export (code deleted), telemetry and PostHog (deleted), autocomplete, marketplace, web search, webfetch, repo_clone, image generation, integrated browser/Playwright, remote MCP, speech to text, auto-update, LSP/npm downloads, codebase indexing. The list of removed agent tools is `packages/albert/src/tools.ts`.
+- **Branding**: never show "Kilo" in the UI. Translated strings are branded at resolution time by `brand()` (`packages/albert/src/brand.ts`) in the webview `resolveTemplate`, the host `t()` and the CLI system prompt (Albert plugin hook). Hard-coded strings must say "Albert Code". Keep factual origin mentions only (About tab, README, LICENSE).
+- **Coexistence with Kilo Code**: sources keep Kilo's VS Code identifiers (`kilo-code.new.*`); packaging renames them to `albert-code.*` and the Agent Manager state file to `albert-agent-manager.json` (`script/albert-ids.ts`). Any new identifier namespace from upstream needs a rule there (`tests/unit/albert-ids.test.ts` and the VSIX scan fail otherwise). A dev build (`bun run extension`) keeps Kilo ids: do not run it next to Kilo Code.
+
+### Environment and commands
+
+- `bun` 1.4.4 is in `~/.bun/bin` (not on the default PATH): use `export PATH=$HOME/.bun/bin:$PATH`. Zig 0.14.0 is needed to build the CLI (`ZIG=/path/to/zig`; SHA-256 pinned in `.github/workflows/albert.yml`).
+- **VSIX** (linux-x64 only): `bun script/albert-package.ts [--rebuild-cli]` from `packages/kilo-vscode` → `out/albert-code-linux-x64.vsix`. It type-checks, lints, bundles, renames identifiers, adds checksum-pinned ripgrep, packages and runs `script/albert-scan.ts` (host scan + Kilo-identifier check). Rebuild the CLI (`--rebuild-cli`) whenever `packages/opencode` or `packages/core` changed, otherwise the VSIX ships the old CLI.
+- **Checks to run before saying something is done** (see also `.github/workflows/albert.yml`):
+  - typecheck: `bun run typecheck` in `packages/{albert,opencode,core,kilo-telemetry,kilo-gateway,kilo-vscode}`;
+  - lint and knip: `bun run lint` and `bun run knip` in `packages/kilo-vscode`;
+  - unit tests: `bun test` in `packages/albert`, `packages/core`, `packages/kilo-telemetry`; `bun test test/albert test/config test/tool/registry.test.ts test/plugin test/provider test/session` in `packages/opencode`; `bun test tests/unit/` in `packages/kilo-vscode`;
+  - **network E2E (mandatory after any runtime change)**: `bash packages/albert/e2e/run.sh <kilo binary>` and `bash packages/albert/e2e/negative.sh <kilo binary>` (binary: `packages/opencode/dist/@kilocode/cli-linux-x64/bin/kilo`). Uses unprivileged user + network namespaces, nftables and tcpdump; set `TMPDIR` to a scratch directory;
+  - VS Code smoke test: `bash packages/albert/e2e/run.sh --vscode <vsix>` (needs a display or `xvfb-run`; opens a VS Code window for ~1 min; keeps window captures as `$TMPDIR/albert-code-{vscode,settings}.xwd`). Coexistence: `E2E_ALSO=~/.vscode/extensions/kilocode.kilo-code-<version>-linux-x64 bash packages/albert/e2e/run.sh --vscode <vsix>`.
+- Real Albert check (only when useful, never print the key): run the CLI with `ALBERT_API_KEY="$(cat ~/.config/albert/api_key)"` and drive it over HTTP like `packages/albert/e2e/scenario.ts`; bash permission prompts must be answered through `POST /permission/:id/reply`.
+
+### Known limits and gotchas
+
+- The guard does not cover commands run by the `bash` tool, local MCP servers, git/gh, or VS Code itself (it contacts `redirector.gvt1.com` and `main.vscode-cdn.net` even without the extension). Bash asks for confirmation by default; README documents a system firewall. Never claim isolation is total.
+- 42 upstream CLI integration tests that spawn the real entry point with a `test` provider fail by construction in Albert mode (listed in UPSTREAM.md); the full `test/kilocode` and `packages/opencode` suites also have many environment-dependent failures upstream. Compare against the `upstream` branch before calling a failure a regression.
+- `gh` is not installed and the shell has no GitHub credentials: pushes must be done by the user.
+- Electron refuses to run as (namespace) root without `--no-sandbox`, and VS Code's IPC socket path must stay under 107 characters (the smoke test uses `/tmp/aud.*`).
+
 ## Build and Dev
 
 - **Dev**: `bun run dev` (runs from root) or `bun run --cwd packages/opencode --conditions=browser src/index.ts`
