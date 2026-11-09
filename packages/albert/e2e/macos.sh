@@ -112,6 +112,14 @@ if [ "$leak" = "1" ]; then
   exit 1
 fi
 if [ "$scenario" != "0" ] || [ "$blocked" != "0" ] || [ "${refusals:-0}" != "0" ]; then
+  # A CI runner is gone after the job: show the CLI output and its last log.
+  echo "--- serve.log (last 100 lines)"
+  sudo tail -n 100 "$root/serve.log" 2> /dev/null || true
+  last="$(sudo find "$root/home" -path '*albert-code/log/*.log' 2> /dev/null | sort | tail -n 1)"
+  if [ -n "$last" ]; then
+    echo "--- $last (last 200 lines)"
+    sudo tail -n 200 "$last"
+  fi
   echo "FAIL: see $root (serve.log, guard.log, pflog.pcap)"
   exit 1
 fi
