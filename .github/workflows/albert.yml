@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
@@ -76,7 +76,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
@@ -109,42 +109,42 @@ jobs:
           curl -fsSL "https://update.code.visualstudio.com/latest/linux-deb-x64/stable" -o "$RUNNER_TEMP/code.deb"
           sudo apt-get install -y "$RUNNER_TEMP/code.deb" xvfb x11-utils x11-apps
           xvfb-run -a bash packages/albert/e2e/run.sh --vscode packages/kilo-vscode/out/albert-code-linux-x64.vsix
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: albert-code-linux-x64-vsix
           path: packages/kilo-vscode/out/albert-code-linux-x64.vsix
           retention-days: 14
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: albert-code-linux-arm64-vsix
           path: packages/kilo-vscode/out/albert-code-linux-arm64.vsix
           retention-days: 14
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: albert-code-alpine-x64-vsix
           path: packages/kilo-vscode/out/albert-code-alpine-x64.vsix
           retention-days: 14
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: albert-code-alpine-arm64-vsix
           path: packages/kilo-vscode/out/albert-code-alpine-arm64.vsix
           retention-days: 14
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: albert-code-darwin-x64-vsix
           path: packages/kilo-vscode/out/albert-code-darwin-x64.vsix
           retention-days: 14
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: albert-code-darwin-arm64-vsix
           path: packages/kilo-vscode/out/albert-code-darwin-arm64.vsix
           retention-days: 14
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: albert-code-win32-x64-vsix
           path: packages/kilo-vscode/out/albert-code-win32-x64.vsix
           retention-days: 14
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: albert-code-win32-arm64-vsix
           path: packages/kilo-vscode/out/albert-code-win32-arm64.vsix
@@ -171,14 +171,14 @@ jobs:
           - { target: win32-x64, runner: windows-2025, kind: windows }
           - { target: win32-arm64, runner: windows-11-arm, kind: windows }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
       - name: Unit tests (guard)
         working-directory: packages/albert
         run: bun test --timeout 30000
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: albert-code-${{ matrix.target }}-vsix
           path: ${{ runner.temp }}/vsix
@@ -231,7 +231,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Check the tag
@@ -244,7 +244,7 @@ jobs:
         run: |
           awk -v head="## $VERSION" '$0 == head { on = 1; next } /^## / { if (on) exit } on' packages/kilo-vscode/CHANGELOG.md > "$RUNNER_TEMP/notes.md"
           grep -q . "$RUNNER_TEMP/notes.md" || { echo "no CHANGELOG entry for $VERSION"; exit 1; }
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: albert-code-*-vsix
           merge-multiple: true
